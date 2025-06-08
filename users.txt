@@ -1,3 +1,0 @@
-admin,admin123,admin
-Chiew Kai Ming,1234,tutor
-Chia Jun Yang,12345,tutor
