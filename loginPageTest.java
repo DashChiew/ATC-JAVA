@@ -2,20 +2,19 @@ import javax.swing.*;
 import java.awt.*;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
-import java.io.BufferedReader;
-import java.io.FileReader;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
 
+
 public class loginPageTest extends JFrame implements ActionListener {
 
     JPasswordField password;
-    JLabel labelPassword, labelUsername, title, attemptLabel;
+    JLabel labelPassword, labelUsername, attemptLabel;
     JTextField username;
     JButton button, resetButton;
     JCheckBox showPassword;
-    private static final String USERS_FILE = "C:\\Users\\WhyNo\\IdeaProjects\\Testing\\src\\users.txt";
+    private static final String USERS_FILE = "users.txt";
     private int loginAttempts = 0;
     private final int MAX_ATTEMPTS = 3;
 
@@ -27,6 +26,7 @@ public class loginPageTest extends JFrame implements ActionListener {
         this.setLayout(null);
         this.getContentPane().setBackground(new Color(23));
         this.setVisible(true);
+        initializeUsersFile();
 
         labelUsername = new JLabel("Username");
         labelUsername.setBounds(80, 180, 200, 40);
@@ -138,39 +138,36 @@ public class loginPageTest extends JFrame implements ActionListener {
         }
     }
 
+
     private List<User> readUsers() throws IOException {
+        List<String> lines = FileHandler.readAllLines(USERS_FILE);
         List<User> users = new ArrayList<>();
-        try (BufferedReader reader = new BufferedReader(new FileReader(USERS_FILE))) {
-            String line;
-            while ((line = reader.readLine()) != null) {
-                String[] parts = line.split(",");
-                if (parts.length == 3) {
-                    users.add(new User(parts[0], parts[1], parts[2]));
-                }
+
+        for (String line : lines) {
+            String[] parts = line.split(",");
+            if (parts.length == 3) {
+                users.add(new User(parts[0], parts[1], parts[2]));
             }
         }
         return users;
     }
 
-}
 
-class User {
-    private String username;
-    private String password;
-    private String role;
+    private void initializeUsersFile() {
+        if (!FileHandler.createFileIfNotExists(USERS_FILE)) {
+            JOptionPane.showMessageDialog(this, "Failed to create users file!");
+            return;
+        }
 
-    public User(String username, String password, String role) {
-        this.username = username;
-        this.password = password;
-        this.role = role;
+        List<String> lines = FileHandler.readAllLines(USERS_FILE);
+        if (lines.isEmpty()) { // If file is empty, add default users
+            List<String> defaultUsers = List.of(
+                    "CYChang,admin123,admin"
+            );
+            FileHandler.writeAllLines(USERS_FILE, defaultUsers);
+        }
     }
 
-    public String getUsername() {
-        return username; }
-    public String getPassword() {
-        return password; }
-    public String getRole() {
-        return role; }
 }
 
 // Simple example of what an admin dashboard might look like
