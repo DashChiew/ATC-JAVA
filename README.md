@@ -12,3 +12,7 @@ Login Page (CY)
   - ReceptionistManagementGUI.java
   - FileHandler.java
   - User.java
+
+Student (Dash)
+  - setting.java
+  - ProfilePageGUI.java
