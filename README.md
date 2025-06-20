@@ -14,5 +14,5 @@ Login Page (CY)
   - User.java
 
 Student (Dash)
-  - setting.java
+  - Setting.java
   - ProfilePageGUI.java
