@@ -8,28 +8,31 @@ import java.awt.geom.RoundRectangle2D;
 import java.awt.image.BufferedImage;
 import java.io.File;
 import java.io.IOException;
-import java.net.URL; // Still needed for resource loading
-import javax.imageio.ImageIO; // For ImageIO.read
+import java.net.URL;
+import javax.imageio.ImageIO;
 import javax.swing.plaf.basic.BasicButtonUI;
+import java.awt.event.ActionEvent;
+import java.awt.event.ActionListener;
+import java.awt.event.WindowAdapter;
+import java.awt.event.WindowEvent;
 
 public class ProfilePageGUI extends JFrame {
 
     public ProfilePageGUI() {
         // Set the title of the window
         setTitle("User Profile Application");
-        // Set the default close operation
+        // Set the default close operation for the ProfilePageGUI
         setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
         // Set preferred size for the frame to make it wider
-        setPreferredSize(new Dimension(550, 630)); // Increased width from 450 to 550
+        setPreferredSize(new Dimension(550, 630));
 
         // Main content panel with a BoxLayout for vertical stacking
         JPanel mainPanel = new JPanel();
-        mainPanel.setLayout(new BoxLayout(mainPanel, BoxLayout.Y_AXIS)); // Stack elements vertically
-        mainPanel.setBorder(new EmptyBorder(40, 40, 40, 40)); // Increased padding around the main content
-        mainPanel.setBackground(new Color(240, 242, 245)); // Light gray background, clean and modern
+        mainPanel.setLayout(new BoxLayout(mainPanel, BoxLayout.Y_AXIS));
+        mainPanel.setBorder(new EmptyBorder(40, 40, 40, 40));
+        mainPanel.setBackground(new Color(240, 242, 245));
 
         // -------------------- Profile Section --------------------
-        // Custom JPanel for rounded corners
         JPanel profilePanel = new JPanel() {
             @Override
             protected void paintComponent(Graphics g) {
@@ -37,10 +40,9 @@ public class ProfilePageGUI extends JFrame {
                 g2.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
                 int width = getWidth();
                 int height = getHeight();
-                int arc = 20; // Increased arc for more pronounced rounded corners
+                int arc = 20;
 
-                // Draw background with rounded corners
-                g2.setColor(getBackground()); // Use the panel's background color
+                g2.setColor(getBackground());
                 g2.fillRoundRect(0, 0, width, height, arc, arc);
 
                 g2.dispose();
@@ -53,32 +55,25 @@ public class ProfilePageGUI extends JFrame {
 
             @Override
             public boolean isOpaque() {
-                // Return false so paintComponent is always called
                 return false;
             }
         };
-        profilePanel.setLayout(new BoxLayout(profilePanel, BoxLayout.Y_AXIS)); // Stack profile elements vertically
-        profilePanel.setBackground(Color.WHITE); // White background for the profile section
-        profilePanel.setBorder(BorderFactory.createEmptyBorder(30, 30, 30, 30)); // Increased padding inside the profile panel
-        profilePanel.setAlignmentX(Component.CENTER_ALIGNMENT); // Center the panel itself
-        profilePanel.setMaximumSize(new Dimension(500, 320)); // Adjusted max width to match wider frame
-        // The putClientProperty("JComponent.roundedCorners", true) is now handled by custom paintComponent
-        // profilePanel.putClientProperty("JComponent.roundedCorners", true);
+        profilePanel.setLayout(new BoxLayout(profilePanel, BoxLayout.Y_AXIS));
+        profilePanel.setBackground(Color.WHITE);
+        profilePanel.setBorder(BorderFactory.createEmptyBorder(30, 30, 30, 30));
+        profilePanel.setAlignmentX(Component.CENTER_ALIGNMENT);
+        profilePanel.setMaximumSize(new Dimension(500, 320));
 
         // Profile Picture using RoundImageLabel
         RoundImageLabel profilePicLabel = null;
-        int imageSize = 128; // Define desired image size
+        int imageSize = 128;
 
         try {
-            // Path to your local image resource.
-            // Ensure 'chill.jpeg' is in your classpath (e.g., in a 'resources' folder)
             URL imageUrl = getClass().getResource("/chill.jpeg");
             String imagePath;
 
             if (imageUrl == null) {
-                // Fallback if resource not found, provide a default placeholder image path
                 System.err.println("Local image 'chill.jpeg' not found in classpath. Using placeholder.");
-                // Create a temporary placeholder image file
                 File tempPlaceholder = createPlaceholderImage(imageSize, imageSize, new Color(108, 99, 255), Color.WHITE, "Profile");
                 imagePath = tempPlaceholder.getAbsolutePath();
             } else {
@@ -86,13 +81,10 @@ public class ProfilePageGUI extends JFrame {
             }
 
             profilePicLabel = new RoundImageLabel(imagePath, imageSize);
-            profilePicLabel.setAlignmentX(Component.CENTER_ALIGNMENT); // Center the image horizontally
+            profilePicLabel.setAlignmentX(Component.CENTER_ALIGNMENT);
 
-            // Add a subtle border around the image using RoundedBorder
-            profilePicLabel.setBorder(new RoundedBorder(imageSize / 2, new Color(173, 216, 230), 2)); // Light blue border, radius set to half size for circular
+            profilePicLabel.setBorder(new RoundedBorder(imageSize / 2, new Color(173, 216, 230), 2));
 
-            // Start fade-in animation for the image
-            // Note: The 'profilePicLabel' is effectively final here, so it can be used in the lambda
             ProfilePageGUI.RoundImageLabel finalProfilePicLabel = profilePicLabel;
             Timer fadeInTimer = new Timer(15, e -> {
                 float alpha = finalProfilePicLabel.alpha;
@@ -104,13 +96,12 @@ public class ProfilePageGUI extends JFrame {
                     ((Timer)e.getSource()).stop();
                 }
             });
-            fadeInTimer.setInitialDelay(100); // Small delay before starting fade-in
+            fadeInTimer.setInitialDelay(100);
             fadeInTimer.start();
 
         } catch (Exception e) {
             System.err.println("Error initializing profile image: " + e.getMessage());
-            // Fallback for label if image cannot be loaded
-            profilePicLabel = new RoundImageLabel(null, imageSize); // Create with null image
+            profilePicLabel = new RoundImageLabel(null, imageSize);
             profilePicLabel.setText("Image Error");
             profilePicLabel.setHorizontalAlignment(SwingConstants.CENTER);
             profilePicLabel.setVerticalAlignment(SwingConstants.CENTER);
@@ -118,50 +109,101 @@ public class ProfilePageGUI extends JFrame {
             profilePicLabel.setBorder(BorderFactory.createLineBorder(Color.LIGHT_GRAY, 1));
         }
 
-
         // Name Label
-        JLabel nameLabel = new JLabel("Alex Johnson"); // Updated name
-        nameLabel.setFont(new Font("Inter", Font.BOLD, 28)); // Larger, bolder font for name
-        nameLabel.setForeground(new Color(55, 65, 81)); // Dark gray text
-        nameLabel.setAlignmentX(Component.CENTER_ALIGNMENT); // Center horizontally
+        JLabel nameLabel = new JLabel("Alex Johnson");
+        nameLabel.setFont(new Font("Inter", Font.BOLD, 28));
+        nameLabel.setForeground(new Color(55, 65, 81));
+        nameLabel.setAlignmentX(Component.CENTER_ALIGNMENT);
 
         // Email Label
-        JLabel emailLabel = new JLabel("alex.johnson@example.com"); // Updated email
-        emailLabel.setFont(new Font("Inter", Font.PLAIN, 18)); // Slightly larger font for email
-        emailLabel.setForeground(new Color(75, 85, 99)); // Gray text
-        emailLabel.setAlignmentX(Component.CENTER_ALIGNMENT); // Center horizontally
+        JLabel emailLabel = new JLabel("alex.johnson@example.com");
+        emailLabel.setFont(new Font("Inter", Font.PLAIN, 18));
+        emailLabel.setForeground(new Color(75, 85, 99));
+        emailLabel.setAlignmentX(Component.CENTER_ALIGNMENT);
 
         // Add components to the profile panel
-        profilePanel.add(Box.createVerticalStrut(15)); // Spacer
+        profilePanel.add(Box.createVerticalStrut(15));
         if (profilePicLabel != null) {
             profilePanel.add(profilePicLabel);
         }
-        profilePanel.add(Box.createVerticalStrut(20)); // Spacer
+        profilePanel.add(Box.createVerticalStrut(20));
         profilePanel.add(nameLabel);
-        profilePanel.add(Box.createVerticalStrut(8)); // Spacer
+        profilePanel.add(Box.createVerticalStrut(8));
         profilePanel.add(emailLabel);
-        profilePanel.add(Box.createVerticalStrut(15)); // Spacer
+        profilePanel.add(Box.createVerticalStrut(15));
 
         // -------------------- Buttons Section --------------------
-        JPanel buttonsPanel = new JPanel(new GridLayout(2, 2, 20, 20)); // 2 rows, 2 columns, with increased gaps
-        buttonsPanel.setBorder(BorderFactory.createEmptyBorder(30, 0, 0, 0)); // Increased top padding
-        buttonsPanel.setBackground(new Color(240, 242, 245)); // Match main background
+        JPanel buttonsPanel = new JPanel(new GridLayout(2, 2, 20, 20));
+        buttonsPanel.setBorder(BorderFactory.createEmptyBorder(30, 0, 0, 0));
+        buttonsPanel.setBackground(new Color(240, 242, 245));
 
-        // Create and add buttons with Classin-like colors
-        buttonsPanel.add(createStyledButton("Courses", new Color(24, 144, 255))); // Primary Blue
-        buttonsPanel.add(createStyledButton("Messages", new Color(72, 160, 220))); // Secondary Blue
-        buttonsPanel.add(createStyledButton("Settings", new Color(100, 116, 139))); // Neutral Gray
-        buttonsPanel.add(createStyledButton("Help", new Color(24, 144, 255))); // Primary Blue (repeated for consistency)
+        // Create and add buttons
+        buttonsPanel.add(createStyledButton("Class Schedule", new Color(24, 144, 255)));
+
+        // Store the "Change Subject" button in a variable to add an action listener
+        JButton changeSubjectButton = createStyledButton("Change Subject", new Color(72, 160, 220)); // Button for changing subject
+        buttonsPanel.add(changeSubjectButton);
+
+        // Store the "Settings" button in a variable to add an action listener
+        JButton settingsButton = createStyledButton("Settings", new Color(100, 116, 139));
+        buttonsPanel.add(settingsButton);
+
+        buttonsPanel.add(createStyledButton("Help", new Color(24, 144, 255)));
+
+        // Add action listener to the Settings button
+        settingsButton.addActionListener(new ActionListener() {
+            @Override
+            public void actionPerformed(ActionEvent e) {
+                // Hide the ProfilePageGUI before showing the Setting window
+                ProfilePageGUI.this.setVisible(false);
+
+                // Create and display the Settings window
+                Setting settingFrame = new Setting();
+                settingFrame.setVisible(true);
+
+                // Add a WindowListener to the Setting frame
+                settingFrame.addWindowListener(new WindowAdapter() {
+                    @Override
+                    public void windowClosed(WindowEvent e) {
+                        // When the Setting frame is closed (disposed), make the ProfilePageGUI visible again
+                        ProfilePageGUI.this.setVisible(true);
+                    }
+                });
+            }
+        });
+
+        // Add action listener to the Change Subject button
+        changeSubjectButton.addActionListener(new ActionListener() {
+            @Override
+            public void actionPerformed(ActionEvent e) {
+                // Hide the ProfilePageGUI before showing the SubjectUpdateForm window
+                ProfilePageGUI.this.setVisible(false);
+
+                // Create and display the SubjectUpdateForm window
+                SubjectUpdateForm subjectForm = new SubjectUpdateForm(); // Changed instantiation
+                subjectForm.setVisible(true);
+
+                // Add a WindowListener to the SubjectUpdateForm frame
+                subjectForm.addWindowListener(new WindowAdapter() {
+                    @Override
+                    public void windowClosed(WindowEvent e) {
+                        // When the SubjectUpdateForm frame is closed (disposed), make the ProfilePageGUI visible again
+                        ProfilePageGUI.this.setVisible(true);
+                    }
+                });
+            }
+        });
+
 
         // -------------------- Add sections to main panel --------------------
         mainPanel.add(profilePanel);
-        mainPanel.add(Box.createVerticalStrut(30)); // Increased spacer between profile and buttons
+        mainPanel.add(Box.createVerticalStrut(30));
         mainPanel.add(buttonsPanel);
 
         // Add the main panel to the frame
         add(mainPanel);
 
-        // Pack the components to their preferred sizes (now effective for auto-sizing)
+        // Pack the components to their preferred sizes
         pack();
         // Center the window on the screen
         setLocationRelativeTo(null);
@@ -169,67 +211,48 @@ public class ProfilePageGUI extends JFrame {
         setVisible(true);
     }
 
-    /**
-     * Helper method to create a styled JButton for a cleaner, Classin-like look,
-     * now including a subtle lift animation on hover.
-     *
-     * @param text The text to display on the button.
-     * @param bgColor The background color of the button.
-     * @return A styled JButton instance.
-     */
     private JButton createStyledButton(String text, Color bgColor) {
         JButton button = new JButton(text);
-        button.setFont(new Font("Inter", Font.BOLD, 16)); // Slightly larger, bolder font for buttons
+        button.setFont(new Font("Inter", Font.BOLD, 16));
         button.setBackground(bgColor);
         button.setForeground(Color.WHITE);
-        button.setFocusPainted(false); // Remove focus border
-        button.setBorder(BorderFactory.createEmptyBorder(15, 25, 15, 25)); // Increased internal padding for a spacious look
-        button.setCursor(new Cursor(Cursor.HAND_CURSOR)); // Change cursor on hover
+        button.setFocusPainted(false);
+        button.setBorder(BorderFactory.createEmptyBorder(15, 25, 15, 25));
+        button.setCursor(new Cursor(Cursor.HAND_CURSOR));
 
-        // Custom painting for rounded corners and shadow, now incorporating animation offset
-        button.setUI(new ButtonUIWithAnimation()); // Assign our custom UI directly
+        button.setUI(new ButtonUIWithAnimation());
 
-        // Add mouse listeners for hover animation
         button.addMouseListener(new java.awt.event.MouseAdapter() {
             @Override
             public void mouseEntered(java.awt.event.MouseEvent evt) {
-                // Get the UI object and cast it to our specific ButtonUIWithAnimation class
                 Object ui = ((JButton) evt.getSource()).getUI();
-                if (ui instanceof ButtonUIWithAnimation) { // Safely check the type
+                if (ui instanceof ButtonUIWithAnimation) {
                     ButtonUIWithAnimation customUI = (ButtonUIWithAnimation) ui;
                     customUI.startAnimation((JComponent) evt.getSource(), customUI.currentLift, customUI.LIFT_AMOUNT);
                 }
-                // Also revert background color for a combined effect
                 button.setBackground(bgColor.brighter());
             }
 
             @Override
             public void mouseExited(java.awt.event.MouseEvent evt) {
-                // Get the UI object and cast it to our specific ButtonUIWithAnimation class
                 Object ui = ((JButton) evt.getSource()).getUI();
-                if (ui instanceof ButtonUIWithAnimation) { // Safely check the type
+                if (ui instanceof ButtonUIWithAnimation) {
                     ButtonUIWithAnimation customUI = (ButtonUIWithAnimation) ui;
-                    customUI.startAnimation((JComponent) evt.getSource(), customUI.currentLift, 0); // Return to original position
+                    customUI.startAnimation((JComponent) evt.getSource(), customUI.currentLift, 0);
                 }
-                button.setBackground(bgColor); // Revert to original background color
+                button.setBackground(bgColor);
             }
         });
         return button;
     }
 
-    /**
-     * Helper method to create a temporary placeholder image file.
-     * This is used if the local image resource is not found.
-     */
     private File createPlaceholderImage(int width, int height, Color bgColor, Color textColor, String text) throws IOException {
         BufferedImage image = new BufferedImage(width, height, BufferedImage.TYPE_INT_ARGB);
         Graphics2D g2d = image.createGraphics();
 
-        // Draw background
         g2d.setColor(bgColor);
         g2d.fillRect(0, 0, width, height);
 
-        // Draw text
         g2d.setColor(textColor);
         g2d.setFont(new Font("Inter", Font.BOLD, Math.min(width, height) / 4));
         FontMetrics fm = g2d.getFontMetrics();
@@ -241,24 +264,17 @@ public class ProfilePageGUI extends JFrame {
 
         File tempFile = File.createTempFile("placeholder", ".png");
         ImageIO.write(image, "png", tempFile);
-        tempFile.deleteOnExit(); // Delete when JVM exits
+        tempFile.deleteOnExit();
         return tempFile;
     }
 
-    /**
-     * Inner class to extend BasicButtonUI and provide animation capabilities.
-     * This helps in encapsulating the animation state and logic per button.
-     * Making it a static nested class to avoid implicit reference to ProfilePageGUI instance.
-     * We pass the component (button) explicitly to the startAnimation method.
-     */
     private static class ButtonUIWithAnimation extends BasicButtonUI {
-        public float currentLift = 0; // Current vertical offset for the lift animation
-        public Timer animationTimer; // Timer for smooth animation
+        public float currentLift = 0;
+        public Timer animationTimer;
 
-        // Animation constants
-        public final int LIFT_AMOUNT = -5; // Pixels to lift upwards
-        public final int ANIMATION_DURATION = 150; // Milliseconds for animation
-        public final int FRAME_RATE = 30; // Frames per second
+        public final int LIFT_AMOUNT = -5;
+        public final int ANIMATION_DURATION = 150;
+        public final int FRAME_RATE = 30;
 
         @Override
         public void paint(Graphics g, JComponent c) {
@@ -266,26 +282,20 @@ public class ProfilePageGUI extends JFrame {
             g2.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
             int width = c.getWidth();
             int height = c.getHeight();
-            // Increased arc for more rounded buttons
-            int arc = 25; // Adjusted from 15 to 25
+            int arc = 25;
 
-            // Apply the animation lift
             g2.translate(0, currentLift);
 
-            // Draw subtle shadow - adjust shadow position based on lift
-            g2.setColor(new Color(0, 0, 0, 30)); // Light black, semi-transparent
+            g2.setColor(new Color(0, 0, 0, 30));
             g2.fillRoundRect(2, 2 - (int)currentLift, width - 4, height - 4, arc, arc);
 
-            // Draw button background
             g2.setColor(c.getBackground());
             g2.fillRoundRect(0, 0, width, height, arc, arc);
 
-            // Draw text
             super.paint(g2, c);
             g2.dispose();
         }
 
-        // Method to start the animation
         public void startAnimation(final JComponent component, final float startValue, final float endValue) {
             if (animationTimer != null && animationTimer.isRunning()) {
                 animationTimer.stop();
@@ -300,17 +310,15 @@ public class ProfilePageGUI extends JFrame {
                     currentLift = endValue;
                     animationTimer.stop();
                 } else {
-                    // Simple linear interpolation
                     currentLift = startValue + (endValue - startValue) * progress;
                 }
-                component.repaint(); // Request a repaint for the animation frame
+                component.repaint();
             });
             animationTimer.setInitialDelay(0);
             animationTimer.start();
         }
     }
 
-    // --- Provided RoundedBorder class ---
     private static class RoundedBorder extends AbstractBorder {
         private final int radius;
         private final Color borderColor;
@@ -328,15 +336,13 @@ public class ProfilePageGUI extends JFrame {
             g2d.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
             g2d.setColor(borderColor);
             g2d.setStroke(new BasicStroke(borderWidth));
-            // Adjust coordinates to paint border correctly around the round image
             g2d.draw(new RoundRectangle2D.Double(x + borderWidth / 2.0, y + borderWidth / 2.0,
-                    width - borderWidth, height - borderWidth, radius * 2, radius * 2)); // Use radius * 2 for arc width/height
+                    width - borderWidth, height - borderWidth, radius * 2, radius * 2));
             g2d.dispose();
         }
 
         @Override
         public Insets getBorderInsets(Component c) {
-            // Provide sufficient insets for the border
             int inset = radius + borderWidth;
             return new Insets(inset, inset, inset, inset);
         }
@@ -348,10 +354,9 @@ public class ProfilePageGUI extends JFrame {
         }
     }
 
-    // --- Provided RoundImageLabel class ---
     private static class RoundImageLabel extends JLabel {
         private BufferedImage image;
-        private float alpha = 0.0f; // For fade-in animation
+        private float alpha = 0.0f;
 
         public RoundImageLabel(String imagePath, int size) {
             if (imagePath != null) {
@@ -366,7 +371,7 @@ public class ProfilePageGUI extends JFrame {
                     setHorizontalAlignment(SwingConstants.CENTER);
                 }
             } else {
-                setText("No Image"); // Set text for placeholder case
+                setText("No Image");
                 setHorizontalAlignment(SwingConstants.CENTER);
                 setVerticalAlignment(SwingConstants.CENTER);
                 setBackground(Color.LIGHT_GRAY);
@@ -387,7 +392,6 @@ public class ProfilePageGUI extends JFrame {
             g2d.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
             g2d.setRenderingHint(RenderingHints.KEY_INTERPOLATION, RenderingHints.VALUE_INTERPOLATION_BILINEAR);
 
-            // Calculate source rectangle to crop the image to a square before scaling
             int imgWidth = originalImage.getWidth();
             int imgHeight = originalImage.getHeight();
             int drawX = 0;
@@ -400,12 +404,10 @@ public class ProfilePageGUI extends JFrame {
                 drawY = (imgHeight - imgWidth) / 2;
             }
 
-            // Create a circular clip
             Area clip = new Area(new Ellipse2D.Double(0, 0, size, size));
             g2d.setComposite(AlphaComposite.SrcOver);
             g2d.setClip(clip);
 
-            // Draw the cropped and scaled image into the circular clip
             g2d.drawImage(originalImage, 0, 0, size, size, drawX, drawY, drawX + cropSize, drawY + cropSize, null);
 
             g2d.dispose();
@@ -420,13 +422,12 @@ public class ProfilePageGUI extends JFrame {
                 g2d.drawImage(image, 0, 0, getWidth(), getHeight(), this);
                 g2d.dispose();
             } else {
-                super.paintComponent(g); // Draw default if no image
+                super.paintComponent(g);
             }
         }
     }
 
     public static void main(String[] args) {
-        // Run the GUI creation on the Event Dispatch Thread (EDT)
         SwingUtilities.invokeLater(() -> {
             new ProfilePageGUI();
         });
