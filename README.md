@@ -14,5 +14,6 @@ Login Page (CY)
   - User.java
 
 Student (Dash)
-  - Setting.java
-  - ProfilePageGUI.java
+  - Setting.java (edit profile)
+  - ProfilePageGUI.java (main page) all
+  - SubjectUpdateForm.java (change subject)
