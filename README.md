@@ -18,3 +18,13 @@ Student (Dash)
   - ProfilePageGUI.java (main page) all
   - ProfilePageGUI.java (mine main page)
   - SubjectUpdateForm.java (change subject)
+
+Receptionist (SK)
+  - ReceptionistFunctionality.java
+  - RPaymentAcceptGUI.java
+  - RPaymentHistoryGUI.java
+  - RPaymentManagementGUI.java
+  - RPaymentMenuGUI.java
+  - RStudentManagementGUI.java
+  - RStudentMenu.java
+  - RProfilePageGUI.java
