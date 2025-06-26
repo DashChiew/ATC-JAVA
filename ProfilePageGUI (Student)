@@ -15,22 +15,58 @@ import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.awt.event.WindowAdapter;
 import java.awt.event.WindowEvent;
+import java.util.Map; // Import for Map
 
 public class ProfilePageGUI extends JFrame {
 
+    private Student loggedInStudent;
+
+    // File constants (copied from Setting.java for consistency)
+    private static final String STUDENTS_FILE = "students.txt";
+    private static final String STUDENT_ENROLLMENT_FILE = "student_enrollment.txt";
+
+
+    // JLabels that need to be updated
+    private JLabel nameLabel;
+    private JLabel emailLabel;
+    private RoundImageLabel profilePicLabel; // Also keep a reference to update if needed
+
     public ProfilePageGUI() {
-        // Set the title of the window
         setTitle("User Profile Application");
-        // Set the default close operation for the ProfilePageGUI
-        setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
-        // Set preferred size for the frame to make it wider
+        // NEW: Set default close operation to DO_NOTHING_ON_CLOSE initially.
+        // This gives us full control within the windowClosing event.
+        setDefaultCloseOperation(JFrame.DO_NOTHING_ON_CLOSE);
         setPreferredSize(new Dimension(550, 630));
 
-        // Main content panel with a BoxLayout for vertical stacking
+        // Add a WindowListener to handle the close operation
+        addWindowListener(new WindowAdapter() {
+            @Override
+            public void windowClosing(WindowEvent e) {
+                int confirm = JOptionPane.showConfirmDialog(
+                        ProfilePageGUI.this,
+                        "Are you sure you want to quit the program?",
+                        "Confirm Exit",
+                        JOptionPane.YES_NO_OPTION
+                );
+
+                if (confirm == JOptionPane.YES_OPTION) {
+                    // Only exit if the user confirms YES
+                    dispose(); // Close the frame
+                    System.exit(0); // Terminate the application
+                }
+                // If NO, simply do nothing (due to setDefaultCloseOperation(DO_NOTHING_ON_CLOSE))
+            }
+        });
+
+
         JPanel mainPanel = new JPanel();
         mainPanel.setLayout(new BoxLayout(mainPanel, BoxLayout.Y_AXIS));
         mainPanel.setBorder(new EmptyBorder(40, 40, 40, 40));
         mainPanel.setBackground(new Color(240, 242, 245));
+
+        // Initialize labels (will be updated by loadAndRefreshStudentData)
+        nameLabel = new JLabel("Loading Name...");
+        emailLabel = new JLabel("Loading Email...");
 
         // -------------------- Profile Section --------------------
         JPanel profilePanel = new JPanel() {
@@ -64,8 +100,6 @@ public class ProfilePageGUI extends JFrame {
         profilePanel.setAlignmentX(Component.CENTER_ALIGNMENT);
         profilePanel.setMaximumSize(new Dimension(500, 320));
 
-        // Profile Picture using RoundImageLabel
-        RoundImageLabel profilePicLabel = null;
         int imageSize = 128;
 
         try {
@@ -109,19 +143,14 @@ public class ProfilePageGUI extends JFrame {
             profilePicLabel.setBorder(BorderFactory.createLineBorder(Color.LIGHT_GRAY, 1));
         }
 
-        // Name Label
-        JLabel nameLabel = new JLabel("Alex Johnson");
         nameLabel.setFont(new Font("Inter", Font.BOLD, 28));
         nameLabel.setForeground(new Color(55, 65, 81));
         nameLabel.setAlignmentX(Component.CENTER_ALIGNMENT);
 
-        // Email Label
-        JLabel emailLabel = new JLabel("alex.johnson@example.com");
         emailLabel.setFont(new Font("Inter", Font.PLAIN, 18));
         emailLabel.setForeground(new Color(75, 85, 99));
         emailLabel.setAlignmentX(Component.CENTER_ALIGNMENT);
 
-        // Add components to the profile panel
         profilePanel.add(Box.createVerticalStrut(15));
         if (profilePicLabel != null) {
             profilePanel.add(profilePicLabel);
@@ -137,79 +166,104 @@ public class ProfilePageGUI extends JFrame {
         buttonsPanel.setBorder(BorderFactory.createEmptyBorder(30, 0, 0, 0));
         buttonsPanel.setBackground(new Color(240, 242, 245));
 
-        // Create and add buttons
-        buttonsPanel.add(createStyledButton("Class Schedule", new Color(24, 144, 255)));
+        buttonsPanel.add(createStyledButton("🕜 Class Schedule", new Color(24, 144, 255)));
 
-        // Store the "Change Subject" button in a variable to add an action listener
-        JButton changeSubjectButton = createStyledButton("Change Subject", new Color(72, 160, 220)); // Button for changing subject
+        JButton changeSubjectButton = createStyledButton("📙 Change Subject", new Color(72, 160, 220));
         buttonsPanel.add(changeSubjectButton);
 
-        // Store the "Settings" button in a variable to add an action listener
-        JButton settingsButton = createStyledButton("Settings", new Color(100, 116, 139));
+        JButton settingsButton = createStyledButton("🔨 Settings", new Color(100, 116, 139));
         buttonsPanel.add(settingsButton);
 
-        buttonsPanel.add(createStyledButton("Help", new Color(24, 144, 255)));
+        JButton feesButton = createStyledButton("💰 Fees", new Color(24, 144, 255));
+        buttonsPanel.add(feesButton);
 
-        // Add action listener to the Settings button
         settingsButton.addActionListener(new ActionListener() {
             @Override
             public void actionPerformed(ActionEvent e) {
-                // Hide the ProfilePageGUI before showing the Setting window
                 ProfilePageGUI.this.setVisible(false);
-
-                // Create and display the Settings window
-                Setting settingFrame = new Setting();
+                // Pass the current loggedInStudent to the Setting frame
+                Setting settingFrame = new Setting(loggedInStudent, ProfilePageGUI.this);
                 settingFrame.setVisible(true);
-
-                // Add a WindowListener to the Setting frame
                 settingFrame.addWindowListener(new WindowAdapter() {
                     @Override
                     public void windowClosed(WindowEvent e) {
-                        // When the Setting frame is closed (disposed), make the ProfilePageGUI visible again
+                        // After Setting frame closes, reload data and refresh display
+                        loadAndRefreshStudentData("S001"); // Assuming S001 is the current user for example
                         ProfilePageGUI.this.setVisible(true);
                     }
                 });
             }
         });
 
-        // Add action listener to the Change Subject button
         changeSubjectButton.addActionListener(new ActionListener() {
             @Override
             public void actionPerformed(ActionEvent e) {
-                // Hide the ProfilePageGUI before showing the SubjectUpdateForm window
                 ProfilePageGUI.this.setVisible(false);
-
-                // Create and display the SubjectUpdateForm window
-                SubjectUpdateForm subjectForm = new SubjectUpdateForm(); // Changed instantiation
+                SubjectUpdateForm subjectForm = new SubjectUpdateForm(loggedInStudent.getStudentId());
                 subjectForm.setVisible(true);
-
-                // Add a WindowListener to the SubjectUpdateForm frame
                 subjectForm.addWindowListener(new WindowAdapter() {
                     @Override
                     public void windowClosed(WindowEvent e) {
-                        // When the SubjectUpdateForm frame is closed (disposed), make the ProfilePageGUI visible again
                         ProfilePageGUI.this.setVisible(true);
                     }
                 });
             }
         });
 
+        feesButton.addActionListener(new ActionListener() {
+            @Override
+            public void actionPerformed(ActionEvent e) {
+                ProfilePageGUI.this.setVisible(false);
 
-        // -------------------- Add sections to main panel --------------------
+                // Pass 'this' (ProfilePageGUI instance) and loggedInStudent
+                MainPayment mainPaymentFrame = new MainPayment(ProfilePageGUI.this, loggedInStudent);
+                mainPaymentFrame.setVisible(true);
+
+                mainPaymentFrame.addWindowListener(new WindowAdapter() {
+                    @Override
+                    public void windowClosed(WindowEvent e) {
+                        ProfilePageGUI.this.setVisible(true);
+                    }
+                });
+            }
+        });
+
         mainPanel.add(profilePanel);
         mainPanel.add(Box.createVerticalStrut(30));
         mainPanel.add(buttonsPanel);
 
-        // Add the main panel to the frame
         add(mainPanel);
-
-        // Pack the components to their preferred sizes
         pack();
-        // Center the window on the screen
         setLocationRelativeTo(null);
-        // Make the window visible
         setVisible(true);
+
+        // Load initial student data and refresh display
+        loadAndRefreshStudentData("S001"); // Load data for S001 on startup
     }
+
+    /**
+     * Loads student data from files and refreshes the displayed profile information.
+     * @param studentId The ID of the student whose data needs to be loaded and displayed.
+     */
+    private void loadAndRefreshStudentData(String studentId) {
+        Map<String, Student> allStudents = Setting.readEnrollmentData(STUDENT_ENROLLMENT_FILE);
+        Setting.readStudentLoginData(STUDENTS_FILE, allStudents);
+
+        loggedInStudent = allStudents.get(studentId);
+
+        if (loggedInStudent != null) {
+            nameLabel.setText(loggedInStudent.getName());
+            emailLabel.setText(loggedInStudent.getEmail());
+            // You might also want to update the profile picture if it's dynamic
+            // For now, assuming the image doesn't change based on saved data.
+        } else {
+            nameLabel.setText("Student Not Found");
+            emailLabel.setText("N/A");
+            System.err.println("Error: Student with ID " + studentId + " not found after refresh.");
+            JOptionPane.showMessageDialog(this, "Could not load profile for student ID: " + studentId, "Data Load Error", JOptionPane.ERROR_MESSAGE);
+        }
+    }
+
 
     private JButton createStyledButton(String text, Color bgColor) {
         JButton button = new JButton(text);
