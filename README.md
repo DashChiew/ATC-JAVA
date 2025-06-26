@@ -28,3 +28,6 @@ Receptionist (SK)
   - RStudentManagementGUI.java
   - RStudentMenu.java
   - RProfilePageGUI.java
+  - payment.txt
+  - students.txt
+  - student_enrollment.txt
