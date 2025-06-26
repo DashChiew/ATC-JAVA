@@ -15,9 +15,15 @@ Login Page (CY)
 
 Student (Dash)
   - Setting.java (edit profile)
+  - Setting (student).java (mine setting) (you guys can edit and use mine)
   - ProfilePageGUI.java (main page) all
-  - ProfilePageGUI.java (mine main page)
+  - ProfilePageGUI (student).java (mine main page)
   - SubjectUpdateForm.java (change subject)
+  - MainPayment.java
+  - Payment.java
+  - RoundedBorder.java (for smooth button edge)
+  - roundImageLabel.java (for round image)
+  - Student.java (define name)
 
 Receptionist (SK)
   - ReceptionistFunctionality.java
