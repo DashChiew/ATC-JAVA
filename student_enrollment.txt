@@ -1,0 +1,4 @@
+S001,"Dash","1234567890","dash@gmail.com","1234567890","Kuala Lumpur","Form 5","BM, Math, Science","June"
+S002,"Testing","IC/Passport","Email","Contact Number","Address","Level","Subjects","Enroll Month"
+S003,"PepeMan","0987654321","pepe@gmail.com","0987654321","Pepe Land","Form 2","English, Math, Chinese","December"
+S004,"Joe Mama","8888","joe@gmail.com","8888","8888","Form 4","Malay","November"
