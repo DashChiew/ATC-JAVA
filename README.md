@@ -24,6 +24,8 @@ Student (Dash)
   - RoundedBorder.java (for smooth button edge)
   - roundImageLabel.java (for round image)
   - Student.java (define name)
+  - payment.txt (saving information student paid)
+  - change_subject (saving student subject request) 
 
 Receptionist (SK)
   - ReceptionistFunctionality.java
