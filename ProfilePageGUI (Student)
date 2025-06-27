@@ -166,7 +166,9 @@ public class ProfilePageGUI extends JFrame {
         buttonsPanel.setBorder(BorderFactory.createEmptyBorder(30, 0, 0, 0));
         buttonsPanel.setBackground(new Color(240, 242, 245));
 
-        buttonsPanel.add(createStyledButton("🕜 Class Schedule", new Color(24, 144, 255)));
+        // NEW: Assign the Class Schedule button to a variable and add its ActionListener
+        JButton classScheduleButton = createStyledButton("🕜 Class Schedule", new Color(24, 144, 255));
+        buttonsPanel.add(classScheduleButton); // Add it to the panel
 
         JButton changeSubjectButton = createStyledButton("📙 Change Subject", new Color(72, 160, 220));
         buttonsPanel.add(changeSubjectButton);
@@ -176,6 +178,25 @@ public class ProfilePageGUI extends JFrame {
 
         JButton feesButton = createStyledButton("💰 Fees", new Color(24, 144, 255));
         buttonsPanel.add(feesButton);
+
+        // ActionListener for Class Schedule Button
+        classScheduleButton.addActionListener(new ActionListener() {
+            @Override
+            public void actionPerformed(ActionEvent e) {
+                ProfilePageGUI.this.setVisible(false); // Hide the current profile page
+                // Create and show the ClassScheduleApp, passing the logged-in student and this frame as parent
+                ClassScheduleApp classScheduleFrame = new ClassScheduleApp(loggedInStudent, ProfilePageGUI.this);
+                classScheduleFrame.setVisible(true);
+
+                // Add a WindowListener to ClassScheduleApp to show ProfilePageGUI when it closes
+                classScheduleFrame.addWindowListener(new WindowAdapter() {
+                    @Override
+                    public void windowClosed(WindowEvent e) {
+                        ProfilePageGUI.this.setVisible(true); // Make the profile page visible again
+                    }
+                });
+            }
+        });
 
         settingsButton.addActionListener(new ActionListener() {
             @Override
@@ -199,7 +220,8 @@ public class ProfilePageGUI extends JFrame {
             @Override
             public void actionPerformed(ActionEvent e) {
                 ProfilePageGUI.this.setVisible(false);
-                SubjectUpdateForm subjectForm = new SubjectUpdateForm(loggedInStudent.getStudentId());
+                // CORRECTED LINE: Pass the loggedInStudent object directly
+                SubjectUpdateForm subjectForm = new SubjectUpdateForm(loggedInStudent);
                 subjectForm.setVisible(true);
                 subjectForm.addWindowListener(new WindowAdapter() {
                     @Override
@@ -246,6 +268,8 @@ public class ProfilePageGUI extends JFrame {
      * @param studentId The ID of the student whose data needs to be loaded and displayed.
      */
     private void loadAndRefreshStudentData(String studentId) {
+        // Ensure that Setting.java is properly compiled and accessible
+        // It should contain the static methods readEnrollmentData and readStudentLoginData
         Map<String, Student> allStudents = Setting.readEnrollmentData(STUDENT_ENROLLMENT_FILE);
         Setting.readStudentLoginData(STUDENTS_FILE, allStudents);
 
