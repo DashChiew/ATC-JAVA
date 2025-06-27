@@ -83,7 +83,7 @@ public class Payment extends JFrame {
     // Method to encapsulate UI initialization
     private void initializeUI() {
         setTitle("Make Payment");
-        setSize(525, 650);
+        setSize(525, 690);
         setLocationRelativeTo(null);
         setLayout(new BorderLayout(0, 20));
         getContentPane().setBackground(CLASSIN_BACKGROUND_WHITE);
@@ -246,7 +246,7 @@ public class Payment extends JFrame {
         payButton = new JButton("Confirm Payment");
         payButton.setFont(new Font("Segoe UI", Font.BOLD, 20));
         payButton.setBackground(CLASSIN_PRIMARY_BLUE);
-        payButton.setForeground(Color.WHITE);
+        payButton.setForeground(CLASSIN_DARK_TEXT);
         payButton.setFocusPainted(false);
         payButton.setBorder(BorderFactory.createEmptyBorder(15, 30, 15, 30));
         payButton.setAlignmentX(Component.CENTER_ALIGNMENT);
