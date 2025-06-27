@@ -16,21 +16,21 @@ public class RStudentMenu {
         JButton btnRegister = new JButton("Register New Student");
         styleMenuButton(btnRegister, new Color(0, 150, 0)); // Green color
         btnRegister.addActionListener(e -> {
-            // Call the existing method from StudentManagementGUI
+            // Call method from StudentManagementGUI
             RStudentManagementGUI.showRegisterStudentDialog(parent);
         });
 
         JButton btnUpdateEnrollment = new JButton("Update Student Enrollment");
         styleMenuButton(btnUpdateEnrollment, new Color(0, 150, 0)); // Green color
         btnUpdateEnrollment.addActionListener(e -> {
-            // Call the existing method from StudentManagementGUI
+            // Call method from StudentManagementGUI
             RStudentManagementGUI.showUpdateEnrollmentDialog(parent);
         });
 
         JButton btnDeleteStudent = new JButton("Delete Student");
         styleMenuButton(btnDeleteStudent, new Color(200, 50, 50)); // Red color
         btnDeleteStudent.addActionListener(e -> {
-            // Call the existing method from StudentManagementGUI
+            // Call method from StudentManagementGUI
             RStudentManagementGUI.showDeleteStudentDialog(parent);
         });
 
@@ -55,6 +55,13 @@ public class RStudentMenu {
             // If user closes the dialog without selecting (choice is JOptionPane.CLOSED_OPTION), do nothing.
         });
 
+        JButton btnManageRequests = new JButton("Student Requests");
+        styleMenuButton(btnManageRequests, new Color(0, 100, 200));
+        btnManageRequests.addActionListener(e -> {
+            // Call method from StudentManagementGUI
+            RStudentRequestForm.openRequestManagement(parent);
+        });
+
         JButton btnClose = new JButton("Close");
         styleMenuButton(btnClose, new Color(100, 100, 100)); // Gray color
         btnClose.addActionListener(e -> menuDialog.dispose()); // Close the current dialog
@@ -63,6 +70,7 @@ public class RStudentMenu {
         menuDialog.add(btnUpdateEnrollment);
         menuDialog.add(btnDeleteStudent);
         menuDialog.add(btnViewStudents);
+        menuDialog.add(btnManageRequests);
         menuDialog.add(btnClose);
         menuDialog.setLocationRelativeTo(parent);
         menuDialog.setVisible(true);
