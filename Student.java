@@ -1,4 +1,3 @@
-// Student.java
 public class Student {
     private String studentId;
     private String name;
@@ -7,15 +6,13 @@ public class Student {
     private String contactNumber;
     private String address;
     private String formLevel;
-    private String subjects;
+    private String subjects; // This is the field we care about for this task
     private String enrollmentMonth;
-    private String password;
-    private String role; // Ensure this field exists
+    private String password; // Added for Setting class functionality
+    private String role;     // Added for Setting class functionality
 
-    // Constructor for student_enrollment.txt data
-    public Student(String studentId, String name, String icPassport, String email,
-                   String contactNumber, String address, String formLevel,
-                   String subjects, String enrollmentMonth) {
+    // Constructor based on student_enrollment.txt
+    public Student(String studentId, String name, String icPassport, String email, String contactNumber, String address, String formLevel, String subjects, String enrollmentMonth) {
         this.studentId = studentId;
         this.name = name;
         this.icPassport = icPassport;
@@ -27,14 +24,8 @@ public class Student {
         this.enrollmentMonth = enrollmentMonth;
     }
 
-    // Constructor to also include data from students.txt (password and role)
-    public Student(String studentId, String name, String icPassport, String email,
-                   String contactNumber, String address, String formLevel,
-                   String subjects, String enrollmentMonth, String password, String role) {
-        this(studentId, name, icPassport, email, contactNumber, address, formLevel, subjects, enrollmentMonth);
-        this.password = password;
-        this.role = role;
-    }
+    // Default constructor (if needed, though the above is primary)
+    public Student() {}
 
     // Getters
     public String getStudentId() { return studentId; }
@@ -44,34 +35,16 @@ public class Student {
     public String getContactNumber() { return contactNumber; }
     public String getAddress() { return address; }
     public String getFormLevel() { return formLevel; }
-    public String getSubjects() { return subjects; }
+    public String getSubjects() { return subjects; } // This is key!
     public String getEnrollmentMonth() { return enrollmentMonth; }
     public String getPassword() { return password; }
-    public String getRole() { return role; } // Make sure this getter exists
+    public String getRole() { return role; }
 
-    // Setters for editable fields
-    public void setName(String name) { this.name = name; }
+    // Setters (especially for fields editable in Setting)
     public void setIcPassport(String icPassport) { this.icPassport = icPassport; }
-    public void setEmail(String email) { this.email = email; }
     public void setContactNumber(String contactNumber) { this.contactNumber = contactNumber; }
     public void setAddress(String address) { this.address = address; }
-    public void setPassword(String password) { this.password = password; } // For demonstration, in real app handle securely
-    public void setRole(String role) { this.role = role; } // <--- This is the method you need to add/verify
-
-    @Override
-    public String toString() {
-        return "Student{" +
-                "studentId='" + studentId + '\'' +
-                ", name='" + name + '\'' +
-                ", icPassport='" + icPassport + '\'' +
-                ", email='" + email + '\'' +
-                ", contactNumber='" + contactNumber + '\'' +
-                ", address='" + address + '\'' +
-                ", formLevel='" + formLevel + '\'' +
-                ", subjects='" + subjects + '\'' +
-                ", enrollmentMonth='" + enrollmentMonth + '\'' +
-                ", password='" + (password != null ? "[HIDDEN]" : "N/A") + '\'' +
-                ", role='" + (role != null ? role : "N/A") + '\'' +
-                '}';
-    }
+    public void setPassword(String password) { this.password = password; }
+    public void setRole(String role) { this.role = role; }
+    public void setSubjects(String subjects) { this.subjects = subjects; } // Also useful if subjects were updated elsewhere
 }
