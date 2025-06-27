@@ -483,8 +483,16 @@ public class MainPayment extends javax.swing.JFrame {
                 // For actual application flow, ProfilePageGUI will call the parameterized constructor.
                 // You can test with a dummy student here:
                 Student testStudent = new Student(
-                        "S001", "Test User", "pass", "idnum", "test@example.com",
-                        "phone", "address", "class", "subjects", "enroll", "role"
+                        "S001",         // studentId
+                        "Test User",    // name
+                        "123456-07-8901", // icPassport (example value)
+                        "test@example.com", // email
+                        "012-3456789",  // contactNumber
+                        "123 Test St",  // address
+                        "Form 4",       // formLevel
+                        "Math,Science,English", // subjects
+                        "January"       // enrollmentMonth
+                        // Removed "pass" and "role" as they are not in the 9-arg constructor
                 );
                 new MainPayment(null, testStudent).setVisible(true); // Pass null for ProfilePageGUI if not launching from it
             }
