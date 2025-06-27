@@ -1,21 +1,18 @@
 import javax.swing.*;
-import javax.swing.border.AbstractBorder; // Needed if you had AbstractBorder in your RoundedBorder
+import javax.swing.border.AbstractBorder;
 import javax.swing.table.DefaultTableModel;
 import javax.swing.table.DefaultTableCellRenderer;
 import java.awt.*;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
-import java.io.FileWriter;
-import java.io.IOException;
-import java.io.PrintWriter;
-import java.io.BufferedReader;
-import java.io.FileReader;
-import java.io.File;
-import java.io.FileNotFoundException;
+import java.io.*;
 import java.time.LocalDate;
 import java.time.format.DateTimeFormatter;
+import java.util.Map;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
+import java.util.Arrays; // Added for splitting subjects string
+import java.util.List;   // Added for splitting subjects string
 
 
 public class SubjectUpdateForm extends JFrame {
@@ -45,17 +42,21 @@ public class SubjectUpdateForm extends JFrame {
     private String initialSubject2;
     private String initialSubject3;
 
-    // New field to store the current user's username
-    private String currentUsername;
+    // Field to store the current user's student object
+    private Student currentStudent; // Changed from String currentUsername
 
     /**
      * Constructor for SubjectUpdateForm.
      *
-     * @param username The username of the currently logged-in student.
+     * @param student The Student object of the currently logged-in student.
      */
-    public SubjectUpdateForm(String username) {
-        this.currentUsername = username;
-        System.out.println("SubjectUpdateForm: Initialized for user: " + currentUsername);
+    public SubjectUpdateForm(Student student) { // Changed parameter to Student object
+        if (student == null) {
+            throw new IllegalArgumentException("Student object cannot be null for SubjectUpdateForm.");
+        }
+        this.currentStudent = student;
+        // Use student ID for username, which is used for file operations
+        System.out.println("SubjectUpdateForm: Initialized for user: " + currentStudent.getStudentId());
 
         // Set up the JFrame (main window)
         setTitle("Update Your Profile");
@@ -113,9 +114,14 @@ public class SubjectUpdateForm extends JFrame {
         fieldsContainerPanel.add(titleLabel);
         fieldsContainerPanel.add(Box.createRigidArea(new Dimension(0, 30)));
 
-        this.subject1Field = addSubjectRow(fieldsContainerPanel, "Subject 1:", "BAHASA MELAYU");
-        this.subject2Field = addSubjectRow(fieldsContainerPanel, "Subject 2:", "ENGLISH");
-        this.subject3Field = addSubjectRow(fieldsContainerPanel, "Subject 3:", "CHINESE");
+        // Extract subjects from the Student object
+        String subjectsString = currentStudent.getSubjects();
+        List<String> currentSubjects = Arrays.asList(subjectsString.split(","));
+
+        // Initialize fields with actual subjects or empty string if less than 3
+        this.subject1Field = addSubjectRow(fieldsContainerPanel, "Subject 1:", getSubjectOrDefault(currentSubjects, 0));
+        this.subject2Field = addSubjectRow(fieldsContainerPanel, "Subject 2:", getSubjectOrDefault(currentSubjects, 1));
+        this.subject3Field = addSubjectRow(fieldsContainerPanel, "Subject 3:", getSubjectOrDefault(currentSubjects, 2));
 
         // Store initial values after fields are populated
         initialSubject1 = subject1Field.getText();
@@ -151,26 +157,34 @@ public class SubjectUpdateForm extends JFrame {
         updateButton.addActionListener(new ActionListener() {
             @Override
             public void actionPerformed(ActionEvent e) {
-                String updatedSubject1 = subject1Field.getText();
-                String updatedSubject2 = subject2Field.getText();
-                String updatedSubject3 = subject3Field.getText();
+                String updatedSubject1 = subject1Field.getText().trim(); // Trim whitespace
+                String updatedSubject2 = subject2Field.getText().trim();
+                String updatedSubject3 = subject3Field.getText().trim();
 
                 boolean anySubjectChanged = false;
 
                 if (!updatedSubject1.equals(initialSubject1)) {
-                    saveChangedSubjectToFile(updatedSubject1, "Pending");
+                    saveChangedSubjectToFile("1", initialSubject1, updatedSubject1, "Pending");
                     anySubjectChanged = true;
                 }
                 if (!updatedSubject2.equals(initialSubject2)) {
-                    saveChangedSubjectToFile(updatedSubject2, "Pending");
+                    saveChangedSubjectToFile("2", initialSubject2, updatedSubject2, "Pending");
                     anySubjectChanged = true;
                 }
                 if (!updatedSubject3.equals(initialSubject3)) {
-                    saveChangedSubjectToFile(updatedSubject3, "Pending");
+                    saveChangedSubjectToFile("3", initialSubject3, updatedSubject3, "Pending");
                     anySubjectChanged = true;
                 }
 
                 if (anySubjectChanged) {
+                    // Update the student's subjects in the Student object and potentially in file
+                    String newSubjectsString = String.join(",", updatedSubject1, updatedSubject2, updatedSubject3);
+                    currentStudent.setSubjects(newSubjectsString);
+                    // You might want to save this updated student object to student_enrollment.txt here
+                    // If you save to student_enrollment.txt, ensure your save method handles updating an existing record
+                    saveEnrollmentData(currentStudent, "student_enrollment.txt");
+
+
                     JOptionPane.showMessageDialog(SubjectUpdateForm.this, "Subjects updated and saved to file (Pending).", "Update Success", JOptionPane.INFORMATION_MESSAGE);
                 } else {
                     JOptionPane.showMessageDialog(SubjectUpdateForm.this, "No subjects were changed.", "No Change", JOptionPane.INFORMATION_MESSAGE);
@@ -180,10 +194,13 @@ public class SubjectUpdateForm extends JFrame {
                 System.out.println("Subject 2 updated to: " + updatedSubject2);
                 System.out.println("Subject 3 updated to: " + updatedSubject3);
 
-                // Optionally, re-load requests to ensure the table is up-to-date
+                // Re-load requests to ensure the table is up-to-date with new entries
                 loadRequestsFromFile();
-                // Instead of disposing, keep the form open to show the updated table
-                // dispose();
+
+                // IMPORTANT: Update initial values to current values after a successful update
+                initialSubject1 = updatedSubject1;
+                initialSubject2 = updatedSubject2;
+                initialSubject3 = updatedSubject3;
             }
         });
         buttonPanel.add(updateButton);
@@ -201,9 +218,9 @@ public class SubjectUpdateForm extends JFrame {
 
         // Table for change requests
         requestTableModel = new DefaultTableModel(new Object[][]{},
-                new String[]{"Date", "Requested Changing Subject", "Status"}) {
+                new String[]{"Date", "Current Subject", "Requested Change", "Status"}) {
             @Override
-            public boolean isCellEditable(int row, int column) {
+            public boolean isCellEditable(int row, int intcolumn) {
                 return false; // Make table non-editable
             }
         };
@@ -222,7 +239,7 @@ public class SubjectUpdateForm extends JFrame {
         headerRenderer.setHorizontalAlignment(JLabel.CENTER);
         requestTable.getTableHeader().setDefaultRenderer(headerRenderer);
 
-        // Center align "Date" and "Status" column data, left align "Requested Changing Subject"
+        // Center align "Date" and "Status" column data, left align subjects
         DefaultTableCellRenderer centerRenderer = new DefaultTableCellRenderer();
         centerRenderer.setHorizontalAlignment(JLabel.CENTER);
 
@@ -230,8 +247,9 @@ public class SubjectUpdateForm extends JFrame {
         leftRenderer.setHorizontalAlignment(JLabel.LEFT);
 
         requestTable.getColumnModel().getColumn(0).setCellRenderer(centerRenderer); // Date
-        requestTable.getColumnModel().getColumn(1).setCellRenderer(leftRenderer);   // Requested Changing Subject
-        requestTable.getColumnModel().getColumn(2).setCellRenderer(centerRenderer); // Status
+        requestTable.getColumnModel().getColumn(1).setCellRenderer(leftRenderer);   // Current Subject
+        requestTable.getColumnModel().getColumn(2).setCellRenderer(leftRenderer);   // Requested Change
+        requestTable.getColumnModel().getColumn(3).setCellRenderer(centerRenderer); // Status
 
 
         JScrollPane tableScrollPane = new JScrollPane(requestTable);
@@ -247,9 +265,18 @@ public class SubjectUpdateForm extends JFrame {
         loadRequestsFromFile(); // Load history when the form initializes
     }
 
-    public SubjectUpdateForm(Student currentStudent, ProfilePageGUI profilePageGUI) {
-
+    // Helper method to get subject at index or an empty string if out of bounds
+    private String getSubjectOrDefault(List<String> subjects, int index) {
+        if (index >= 0 && index < subjects.size()) {
+            return subjects.get(index).trim();
+        }
+        return ""; // Return empty string if subject not found
     }
+
+    // This constructor is not fully implemented in your original code, focusing on the one with Student parameter.
+    // public SubjectUpdateForm(Student currentStudent, ProfilePageGUI profilePageGUI) {
+    //     // You would typically call the other constructor from here or duplicate setup logic.
+    // }
 
     /**
      * Helper method to create and add a subject row (label + text field) to a panel.
@@ -269,7 +296,6 @@ public class SubjectUpdateForm extends JFrame {
         textField.setBackground(CLASSIN_LIGHT_GRAY);
         textField.setForeground(CLASSIN_DARK_TEXT);
         textField.setFont(new Font("Segoe UI", Font.BOLD, 14));
-        // Assuming RoundedBorder is defined elsewhere or will be provided
         textField.setBorder(new RoundedBorder(8, CLASSIN_LIGHT_BORDER, 1));
         textField.setMargin(new Insets(5, 10, 5, 10));
         textField.setCaretColor(CLASSIN_PRIMARY_BLUE);
@@ -282,18 +308,20 @@ public class SubjectUpdateForm extends JFrame {
 
     /**
      * Saves a changed subject to a text file named "change_subject.txt".
-     * Each entry includes the student username, subject name, and its status.
-     * @param subjectName The name of the subject that was changed.
+     * Each entry includes the student username, date, previous subject, new subject, and its status.
+     * @param subjectNumber The number of the subject that was changed (e.g., "1", "2", "3").
+     * @param previousSubject The subject value before the change.
+     * @param requestedSubject The new subject value requested by the user.
      * @param status The status of the change (e.g., "Pending").
      */
-    private void saveChangedSubjectToFile(String subjectName, String status) {
-        // Get current date for the table entry
+    private void saveChangedSubjectToFile(String subjectNumber, String previousSubject, String requestedSubject, String status) {
         String currentDate = LocalDate.now().format(DateTimeFormatter.ofPattern("dd MMMM yyyy"));
 
-        try (PrintWriter out = new PrintWriter(new FileWriter("change_subject.txt", true))) { // true for append mode
-            // Prepend username to the line
-            out.println(currentUsername + ",Date: " + currentDate + ", Subject: " + subjectName + ", Status: " + status);
-            System.out.println("SubjectUpdateForm: Saved changed subject to change_subject.txt: " + currentUsername + ", " + subjectName);
+        try (PrintWriter out = new PrintWriter(new FileWriter("change_subject.txt", true))) {
+            String lineToSave = String.format("%s,Date: %s, \"Current Subject %s: %s\", \"Subject %s Request: %s\", Status: %s",
+                    currentStudent.getStudentId(), currentDate, subjectNumber, previousSubject, subjectNumber, requestedSubject, status); // Use student ID here
+            out.println(lineToSave);
+            System.out.println("SubjectUpdateForm: Saved changed subject to change_subject.txt: " + lineToSave);
         } catch (IOException e) {
             System.err.println("SubjectUpdateForm: Error saving changed subject to file: " + e.getMessage());
             JOptionPane.showMessageDialog(this,
@@ -302,9 +330,7 @@ public class SubjectUpdateForm extends JFrame {
                     JOptionPane.ERROR_MESSAGE);
             return;
         }
-        // Also add to the table model immediately after successful file save
-        // No need to add username to the table view itself, as it's filtered by user
-        requestTableModel.addRow(new Object[]{currentDate, subjectName, status});
+        requestTableModel.addRow(new Object[]{currentDate, previousSubject, "Subject " + subjectNumber + " Request: " + requestedSubject, status});
     }
 
     /**
@@ -320,9 +346,11 @@ public class SubjectUpdateForm extends JFrame {
 
         requestTableModel.setRowCount(0); // Clear existing table data before loading
 
-        // Regex pattern to parse lines like "USERNAME,Date: DD MMMM YYYY, Subject: X, Status: Y"
-        // It now expects the username at the beginning
-        String regex = "^(.*?),(?:Date: (.*?)),(?: Subject: (.*?)),(?: Status: (.*))$";
+        String regex = "^(.*?)," +                              // Group 1: Username
+                "Date: (.*?)," +                         // Group 2: Date
+                "\\s*\"Current Subject (\\d+): (.*?)\"," + // Group 3: Subject Number, Group 4: Current Subject
+                "\\s*\"Subject (\\d+) Request: (.*?)\"," + // Group 5: Subject Number, Group 6: Requested Subject
+                "\\s*Status: (.*)$";                     // Group 7: Status
         Pattern pattern = Pattern.compile(regex);
 
         try (BufferedReader reader = new BufferedReader(new FileReader(file))) {
@@ -333,12 +361,14 @@ public class SubjectUpdateForm extends JFrame {
                     try {
                         String fileUsername = matcher.group(1).trim();
                         String date = matcher.group(2).trim();
-                        String subject = matcher.group(3).trim();
-                        String status = matcher.group(4).trim();
+                        String currentSubject = matcher.group(4).trim();
+                        String requestedSubjectNumber = matcher.group(5).trim();
+                        String requestedSubject = matcher.group(6).trim();
+                        String status = matcher.group(7).trim();
 
                         // Only add requests relevant to the current user
-                        if (fileUsername.equals(currentUsername)) {
-                            requestTableModel.addRow(new Object[]{date, subject, status});
+                        if (fileUsername.equals(currentStudent.getStudentId())) { // Compare with student ID
+                            requestTableModel.addRow(new Object[]{date, currentSubject, "Subject " + requestedSubjectNumber + " Request: " + requestedSubject, status});
                         }
                     } catch (Exception e) {
                         System.err.println("SubjectUpdateForm: Error parsing line from file: " + line + " - " + e.getMessage());
@@ -347,7 +377,7 @@ public class SubjectUpdateForm extends JFrame {
                     System.err.println("SubjectUpdateForm: Line did not match expected format: " + line);
                 }
             }
-            System.out.println("SubjectUpdateForm: Subject change requests loaded for user " + currentUsername + " from change_subject.txt successfully.");
+            System.out.println("SubjectUpdateForm: Subject change requests loaded for user " + currentStudent.getStudentId() + " from change_subject.txt successfully.");
         } catch (FileNotFoundException e) {
             System.err.println("SubjectUpdateForm: change_subject.txt not found during load: " + e.getMessage());
         } catch (IOException e) {
@@ -359,6 +389,35 @@ public class SubjectUpdateForm extends JFrame {
         }
     }
 
+    // New method to save the updated student data back to student_enrollment.txt
+    private void saveEnrollmentData(Student updatedStudent, String filename) {
+        Map<String, Student> allStudents = Setting.readEnrollmentData(filename); // Re-read all enrollment data
+        allStudents.put(updatedStudent.getStudentId(), updatedStudent); // Update the specific student
+
+        try (BufferedWriter bw = new BufferedWriter(new FileWriter(filename))) { // Corrected line here
+            for (Student student : allStudents.values()) {
+                String line = String.format("%s,\"%s\",\"%s\",\"%s\",\"%s\",\"%s\",\"%s\",\"%s\",\"%s\"",
+                        student.getStudentId(),
+                        student.getName(),
+                        student.getIcPassport(),
+                        student.getEmail(),
+                        student.getContactNumber(),
+                        student.getAddress(),
+                        student.getFormLevel(),
+                        student.getSubjects(), // Save the potentially updated subjects
+                        student.getEnrollmentMonth());
+                bw.write(line);
+                bw.newLine();
+            }
+            System.out.println("Successfully wrote updated enrollment data to: " + filename);
+        } catch (IOException e) {
+            System.err.println("Error writing to " + filename + ": " + e.getMessage());
+            e.printStackTrace();
+            JOptionPane.showMessageDialog(this, "Error saving enrollment data: " + e.getMessage(), "File Save Error", JOptionPane.ERROR_MESSAGE);
+        }
+    }
+
+
 
     public static void main(String[] args) {
         try {
@@ -368,13 +427,23 @@ public class SubjectUpdateForm extends JFrame {
         }
 
         SwingUtilities.invokeLater(() -> {
-            // For testing, hardcode a username that would typically come from a login or session
-            new SubjectUpdateForm("S001").setVisible(true); // Example: "S001"
+            // For testing, load a student as you would in Setting.java
+            Map<String, Student> allStudents = Setting.readEnrollmentData("student_enrollment.txt");
+            Setting.readStudentLoginData("students.txt", allStudents); // Load password/role too
+
+            Student studentToDisplay = allStudents.get("S001");
+
+            if (studentToDisplay != null) {
+                System.out.println("Loading SubjectUpdateForm for student: " + studentToDisplay.getName() + " (" + studentToDisplay.getStudentId() + ")");
+                new SubjectUpdateForm(studentToDisplay).setVisible(true);
+            } else {
+                System.err.println("Student S001 not found or data could not be loaded for SubjectUpdateForm.");
+                JOptionPane.showMessageDialog(null, "Student S001 not found or data could not be loaded. Please ensure 'S001' exists in your data files and 'student_enrollment.txt' is accessible.", "Error", JOptionPane.ERROR_MESSAGE);
+            }
         });
     }
 
-    // Placeholder for RoundedBorder class, assuming it's defined elsewhere
-    // If not, you'll need to define it or remove its usage
+    // Placeholder for RoundedBorder class
     private static class RoundedBorder extends AbstractBorder {
         private int radius;
         private Color lineColor;
