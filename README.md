@@ -39,3 +39,21 @@ Receptionist (SK)
   - payment.txt
   - students.txt
   - student_enrollment.txt
+
+Tutor (Jun Yang)
+-TutorDashboardGUI (Main run)
+-TeacherProfileManager.java
+-TutorData.java
+-ButtonUIWithAnimation.java
+-Roundedborder.java
+-RoundImageLabel.java
+-AddClasFrame.java
+-DeleteClassFrame.java
+-TutorSettingsFrame.java
+-UpdateClassFrame.java
+-ViewClassesPanel.java
+-ViewStudentsPanel.java
+-FileUtil.java
+-enrolment.txt
+-subjects.txt
+-teacherProfile.txt
