@@ -41,7 +41,8 @@ Receptionist (SK)
   - student_enrollment.txt
 
 Tutor (Jun Yang)
-•	-TutorDashboardGUI (Main run)
+•	loginPageTest(junyang) main run
+-TutorDashboardGUI
 •	-TeacherProfileManager.java
 •	-TutorData.java
 •	-ButtonUIWithAnimation.java
