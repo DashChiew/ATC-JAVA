@@ -1,3 +1,4 @@
+package com.tutorapp;
 import javax.swing.*;
 import java.awt.*;
 import java.awt.event.ActionEvent;
@@ -6,6 +7,9 @@ import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
 
+// Import statements for classes that are still needed
+import com.tutorapp.data.User;
+import com.tutorapp.utils.FileHandler;
 
 public class loginPageTest extends JFrame implements ActionListener {
 
@@ -18,7 +22,7 @@ public class loginPageTest extends JFrame implements ActionListener {
     private int loginAttempts = 0;
     private final int MAX_ATTEMPTS = 3;
 
-    loginPageTest() {
+    public loginPageTest() {
         this.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
         this.setTitle("Java GUI Login Form");
         this.setSize(500, 600);
@@ -126,26 +130,23 @@ public class loginPageTest extends JFrame implements ActionListener {
                 }
 
                 if (loginSuccess) {
-                    JOptionPane.showMessageDialog(this, "Login Successful!\nRole: " + userRole, "Success", JOptionPane.INFORMATION_MESSAGE);
-                    // Open appropriate dashboard based on role
-                    if (userRole.equals("admin")) {
-                        // Pass 'this' (the current loginPageTest instance) to the AdminDashboard
-                        AdminDashboard dashboard = new AdminDashboard(this);
-                        dashboard.setVisible(true);
-                        this.setVisible(false); // <--- HIGHLIGHT 3: Changed from dispose() to setVisible(false)
-                        // Clear fields and reset attempts for next potential login (after logout)
+                    // Only handle 'tutor' and 'receptionist' roles, or a general success
+                    if (userRole.equals("tutor")) {
+                        JOptionPane.showMessageDialog(this, "Login Successful!\nRole: Tutor", "Success", JOptionPane.INFORMATION_MESSAGE);
+                        TutorDashboardGUI tutorDashboard = new TutorDashboardGUI(userText, this); // Pass username and loginPageTest instance
+                        tutorDashboard.setVisible(true);
+                        this.setVisible(false); // Hide login page
                         clearFields(); // Prepare login page for next use
-                    } else if (userRole.equals("tutor")) {
-                        // Placeholder for Tutor Dashboard
-                        JOptionPane.showMessageDialog(this, "Tutor Dashboard Coming Soon!");
-                        // You'd typically hide the login page and show the tutor dashboard here
-                        this.setVisible(false);
-                        clearFields();
                     } else if (userRole.equals("receptionist")) {
+                        JOptionPane.showMessageDialog(this, "Login Successful!\nRole: Receptionist", "Success", JOptionPane.INFORMATION_MESSAGE);
                         // Placeholder for Receptionist Dashboard
                         JOptionPane.showMessageDialog(this, "Receptionist Dashboard Coming Soon!");
-                        // You'd typically hide the login page and show the receptionist dashboard here
                         this.setVisible(false);
+                        clearFields();
+                    } else {
+                        // For any other role not explicitly handled, or if you want a generic message
+                        JOptionPane.showMessageDialog(this, "Login Successful!\nRole: " + userRole + ". No specific dashboard implemented for this role yet.", "Success", JOptionPane.INFORMATION_MESSAGE);
+                        this.setVisible(false); // Still hide the login page
                         clearFields();
                     }
                 } else {
@@ -215,7 +216,7 @@ public class loginPageTest extends JFrame implements ActionListener {
 
         for (String line : lines) {
             String[] parts = line.split(",");
-            if (parts.length == 3) {
+            if (parts.length == 3) { // Expecting username,password,role
                 users.add(new User(parts[0].trim(), parts[1].trim(), parts[2].trim()));
             }
         }
@@ -230,23 +231,31 @@ public class loginPageTest extends JFrame implements ActionListener {
         }
 
         List<String> lines = FileHandler.readAllLines(USERS_FILE);
-        if (lines.isEmpty() || !containsDefaultAdmin(lines)) { // If file is empty or doesn't contain default admin, add default users
-            List<String> defaultUsers = new ArrayList<>();
-            // Only add if not already present to avoid duplicates on multiple runs
-            if (!lines.contains("CYChang,admin123,admin")) {
-                defaultUsers.add("CYChang,admin123,admin");
-            }
+        List<String> defaultUsersToAdd = new ArrayList<>();
 
-            // Append only if default users are found
-            if (!defaultUsers.isEmpty()) {
-                List<String> combinedLines = new ArrayList<>(lines);
-                combinedLines.addAll(defaultUsers);
-                FileHandler.writeAllLines(USERS_FILE, combinedLines);
+        // Add a default tutor user if not present
+        if (!lines.contains("tutor1,tutorpass,tutor")) {
+            defaultUsersToAdd.add("tutor1,tutorpass,tutor");
+        }
+        // Add a default receptionist user if not present
+        if (!lines.contains("receptionist1,recpass,receptionist")) {
+            defaultUsersToAdd.add("receptionist1,recpass,receptionist");
+        }
+
+        // Append only if default users are found
+        if (!defaultUsersToAdd.isEmpty()) {
+            List<String> combinedLines = new ArrayList<>(lines);
+            for (String newUserLine : defaultUsersToAdd) {
+                if (!combinedLines.contains(newUserLine)) { // Avoid adding duplicates if they somehow got in during runtime
+                    combinedLines.add(newUserLine);
+                }
             }
+            FileHandler.writeAllLines(USERS_FILE, combinedLines);
         }
     }
 
-    // Helper to check if default admin user already exists
+    // This helper is no longer strictly needed if we don't care about a default admin
+    // but keeping it won't hurt, just ensure it's not used to *add* an admin.
     private boolean containsDefaultAdmin(List<String> lines) {
         for (String line : lines) {
             if (line.startsWith("CYChang,admin123,admin")) {
@@ -254,5 +263,10 @@ public class loginPageTest extends JFrame implements ActionListener {
             }
         }
         return false;
+    }
+
+    // Main method to run the application
+    public static void main(String[] args) {
+        SwingUtilities.invokeLater(loginPageTest::new);
     }
 }
