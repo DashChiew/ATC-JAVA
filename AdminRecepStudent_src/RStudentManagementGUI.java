@@ -1,8 +1,6 @@
 import javax.swing.*;
 import java.awt.*;
-import java.io.IOException; // Import IOException
 import java.util.List;
-import java.util.stream.Collectors;
 
 public class RStudentManagementGUI {
     public static void showRegisterStudentDialog(JFrame parent) {
@@ -24,24 +22,23 @@ public class RStudentManagementGUI {
         dialog.add(btnCancel);
 
         btnRegister.addActionListener(e -> {
-            String name = txtName.getText();
-            String password = new String(txtPassword.getPassword());
-            if (name.isEmpty() || password.isEmpty()) {
-                JOptionPane.showMessageDialog(dialog, "Please enter both Name and Password!");
-                return;
-            }
-            try {
-                ReceptionistFunctionality.registerStudent(name, password);
-                // Get the username after registration, assuming generateUsername increments counter first
-                // A better approach would be to have registerStudent return the generated username
-                String newUsername = String.format("S%03d", ReceptionistFunctionality.getStudentCounter() -1);
-                JOptionPane.showMessageDialog(dialog, "Student " + newUsername + " registered successfully!");
-                dialog.dispose();
-            }
-            catch (Exception ex) {
-                JOptionPane.showMessageDialog(dialog, "Register student error: " + ex.getMessage());
-            }
-        });
+                    String name = txtName.getText();
+                    String password = new String(txtPassword.getPassword());
+                    if (name.isEmpty() || password.isEmpty()) {
+                        JOptionPane.showMessageDialog(dialog, "Please enter both Name and Password!");
+                        return;
+                    }
+                    try {
+                        ReceptionistFunctionality.registerStudent(name, password);
+                        String newUsername = String.format("S%03d", ReceptionistFunctionality.getStudentCounter() -1);
+                        JOptionPane.showMessageDialog(dialog, "Student " + newUsername + " registered successfully!");
+                        dialog.dispose();
+                    }
+                    catch (Exception ex) {
+                        JOptionPane.showMessageDialog(dialog, "Register student error: " + ex.getMessage());
+                    }
+                }
+        );
 
         btnCancel.addActionListener(e -> dialog.dispose());
 
@@ -69,7 +66,7 @@ public class RStudentManagementGUI {
 
         // To select student
         JComboBox<String> studentDropDown = new JComboBox<>(
-                students.stream().map(s -> s.split(",")[0].trim()).toArray(String[]::new)); // Trim usernames
+                students.stream().map(s -> s.split(",")[0]).toArray(String[]::new));
 
         JTextField txtName = new JTextField();
         JTextField txtIC = new JTextField();
@@ -81,12 +78,12 @@ public class RStudentManagementGUI {
         JComboBox<String> cmbMonth = new JComboBox<>(new String[]{"January", "February", "March", "April", "May",
                 "June", "July", "August", "September", "October", "November", "December"});
 
-        setKeepOldDataTip(txtName, txtIC, txtEmail, txtContact, txtAddress, txtSubjects); // Added IC for tool tip
+        setKeepOldDataTip(txtName, txtEmail, txtContact, txtAddress, txtSubjects);
 
-        dialog.add(new JLabel("Select Student:")); // Label for dropdown
-        dialog.add(studentDropDown);
         dialog.add(new JLabel("Enter Name:"));
         dialog.add(txtName);
+        dialog.add(new JLabel("Select Student:"));
+        dialog.add(studentDropDown);
         dialog.add(new JLabel("Enter IC/Passport:"));
         dialog.add(txtIC);
         dialog.add(new JLabel("Enter Email:"));
@@ -118,11 +115,8 @@ public class RStudentManagementGUI {
                 ReceptionistFunctionality.updateStudentEnrollment(username, name, ic, email, contact, address, level, subjects, month);
                 JOptionPane.showMessageDialog(dialog, "Enrollment updated successfully!");
                 dialog.dispose();
-            } catch (IOException ex) { // Catch IOException specifically
-                JOptionPane.showMessageDialog(dialog, "Update error: " + ex.getMessage());
             } catch (Exception ex) {
-                JOptionPane.showMessageDialog(dialog, "An unexpected error occurred: " + ex.getMessage());
-                ex.printStackTrace();
+                JOptionPane.showMessageDialog(dialog, "Update error: " + ex.getMessage());
             }
         });
 
@@ -145,33 +139,23 @@ public class RStudentManagementGUI {
         dialog.setLayout(new BorderLayout());
 
         JComboBox<String> studentDropDown = new JComboBox<>(
-                students.stream().map(s -> s.split(",")[0].trim()).toArray(String[]::new)); // Trim usernames
+                students.stream().map(s -> s.split(",")[0]).toArray(String[]::new));
 
         JButton btnDelete = new JButton("Delete");
         btnDelete.addActionListener(e -> {
             String username = (String) studentDropDown.getSelectedItem();
-            if (username == null || username.isEmpty()) {
-                JOptionPane.showMessageDialog(dialog, "Please select a student to delete.", "Warning", JOptionPane.WARNING_MESSAGE);
-                return;
+            if (ReceptionistFunctionality.deleteStudent(username)) {
+                JOptionPane.showMessageDialog(dialog, "Student deleted successfully.");
+                dialog.dispose();
             }
-            int confirm = JOptionPane.showConfirmDialog(dialog,
-                    "Are you sure you want to delete student: " + username + "? This action cannot be undone.",
-                    "Confirm Deletion", JOptionPane.YES_NO_OPTION);
-
-            if (confirm == JOptionPane.YES_OPTION) {
-                if (ReceptionistFunctionality.deleteStudent(username)) {
-                    JOptionPane.showMessageDialog(dialog, "Student deleted successfully.");
-                    dialog.dispose();
-                } else {
-                    JOptionPane.showMessageDialog(dialog, "Student deletion failed or student not found.", "Error", JOptionPane.ERROR_MESSAGE);
-                }
+            else {
+                JOptionPane.showMessageDialog(dialog, "Student delete failed.");
             }
-        });
+        }
+        );
 
         dialog.add(studentDropDown, BorderLayout.CENTER);
-        JPanel buttonPanel = new JPanel();
-        buttonPanel.add(btnDelete);
-        dialog.add(buttonPanel, BorderLayout.SOUTH); // Place button panel at the bottom
+        dialog.add(btnDelete, BorderLayout.SOUTH);
         dialog.pack();
         dialog.setLocationRelativeTo(parent);
         dialog.setVisible(true);

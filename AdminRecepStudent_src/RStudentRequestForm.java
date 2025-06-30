@@ -84,7 +84,7 @@ public class RStudentRequestForm {
                         parts[4].trim().replace("Status: ", "")
                 });
             } else {
-                System.err.println("Malformed request line skipped: " + request);
+                System.err.println("Malformed request line: " + request);
             }
         }
 
@@ -145,9 +145,6 @@ public class RStudentRequestForm {
     }
 
     private static List<String> readRequests() {
-        // Ensure file exists before reading
-        FileHandler.createFileIfNotExists(REQUEST_FILE);
-
         List<String> requests = new ArrayList<>();
         try (BufferedReader reader = new BufferedReader(new FileReader(REQUEST_FILE))) {
             String line;

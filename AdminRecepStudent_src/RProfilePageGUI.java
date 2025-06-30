@@ -18,7 +18,7 @@ import javax.swing.plaf.basic.BasicButtonUI;
 public class RProfilePageGUI extends JFrame implements ActionListener {
 
     private final loginPageTest loginPage;
-
+    private final String currentUsername;
     private final JButton btnStudentOperations;
     private final JButton btnPaymentOperations;
     private final JButton btnSettings;
@@ -26,10 +26,11 @@ public class RProfilePageGUI extends JFrame implements ActionListener {
 
     public RProfilePageGUI(loginPageTest loginPage) {
         this.loginPage = loginPage;
+        this.currentUsername = loginPage.username.getText();
         // Set the title of the window
         setTitle("User Profile Application");
         // Set the default close operation
-        setDefaultCloseOperation(JFrame.DISPOSE_ON_CLOSE); // Changed to DISPOSE_ON_CLOSE for secondary window
+        setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
         // Set preferred size for the frame to make it wider
         setPreferredSize(new Dimension(550, 630)); // Increased width from 450 to 550
 
@@ -166,9 +167,9 @@ public class RProfilePageGUI extends JFrame implements ActionListener {
 
         btnSettings = createStyledButton("Settings", new Color(100, 116, 139));
         buttonsPanel.add(btnSettings);
-        btnSettings.addActionListener(this);
+        btnSettings.addActionListener(e -> RSettingsGUI.showSettingsDialog(this, currentUsername));
 
-        btnLogout = createStyledButton("Logout", new Color(24, 144, 255)); // Changed to "Help" in prev req, now back to Logout context.
+        btnLogout = createStyledButton("Help", new Color(24, 144, 255));
         buttonsPanel.add(btnLogout);
         btnLogout.addActionListener(this);
 
@@ -288,7 +289,7 @@ public class RProfilePageGUI extends JFrame implements ActionListener {
      * Making it a static nested class to avoid implicit reference to ProfilePageGUI instance.
      * We pass the component (button) explicitly to the startAnimation method.
      */
-    public static class ButtonUIWithAnimation extends BasicButtonUI {
+    private static class ButtonUIWithAnimation extends BasicButtonUI {
         public float currentLift = 0; // Current vertical offset for the lift animation
         public Timer animationTimer; // Timer for smooth animation
 
@@ -348,7 +349,7 @@ public class RProfilePageGUI extends JFrame implements ActionListener {
     }
 
     // --- Provided RoundedBorder class ---
-    public static class RoundedBorder extends AbstractBorder {
+    private static class RoundedBorder extends AbstractBorder {
         private final int radius;
         private final Color borderColor;
         private final int borderWidth;
@@ -386,7 +387,7 @@ public class RProfilePageGUI extends JFrame implements ActionListener {
     }
 
     // --- Provided RoundImageLabel class ---
-    public static class RoundImageLabel extends JLabel {
+    private static class RoundImageLabel extends JLabel {
         private BufferedImage image;
         private float alpha = 0.0f; // For fade-in animation
 
@@ -401,7 +402,6 @@ public class RProfilePageGUI extends JFrame implements ActionListener {
                     JOptionPane.showMessageDialog(this, "Error initializing profile image: " + e.getMessage(), "Image Error", JOptionPane.ERROR_MESSAGE);
                     setText("Image Error");
                     setHorizontalAlignment(SwingConstants.CENTER);
-                    setVerticalAlignment(SwingConstants.CENTER);
                 }
             } else {
                 setText("No Image"); // Set text for placeholder case

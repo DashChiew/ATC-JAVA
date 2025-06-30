@@ -9,49 +9,56 @@ public class RStudentMenu {
 
     public static void showStudentMenu(JFrame parent) {
         JDialog menuDialog = new JDialog(parent, "Student Operations", true); // Modal dialog
-        menuDialog.setSize(350, 450); // Set a fixed size for the menu, adjusted for more buttons
-        menuDialog.setLayout(new GridLayout(6, 1, 10, 10)); // Grid layout for buttons with gaps
+        menuDialog.setSize(350, 350); // Set a fixed size for the menu
+        menuDialog.setLayout(new GridLayout(5, 1, 10, 10)); // Grid layout for buttons with gaps
         menuDialog.getContentPane().setBackground(new Color(40, 40, 40)); // Dark background for the dialog
 
         JButton btnRegister = new JButton("Register New Student");
         styleMenuButton(btnRegister, new Color(0, 150, 0)); // Green color
         btnRegister.addActionListener(e -> {
+            // Call method from StudentManagementGUI
             RStudentManagementGUI.showRegisterStudentDialog(parent);
         });
 
         JButton btnUpdateEnrollment = new JButton("Update Student Enrollment");
         styleMenuButton(btnUpdateEnrollment, new Color(0, 150, 0)); // Green color
         btnUpdateEnrollment.addActionListener(e -> {
+            // Call method from StudentManagementGUI
             RStudentManagementGUI.showUpdateEnrollmentDialog(parent);
         });
 
         JButton btnDeleteStudent = new JButton("Delete Student");
         styleMenuButton(btnDeleteStudent, new Color(200, 50, 50)); // Red color
         btnDeleteStudent.addActionListener(e -> {
+            // Call method from StudentManagementGUI
             RStudentManagementGUI.showDeleteStudentDialog(parent);
         });
 
         JButton btnViewStudents = new JButton("View Student Data");
         styleMenuButton(btnViewStudents, new Color(0, 100, 200)); // Blue color
         btnViewStudents.addActionListener(e -> {
-            String[] options = {"View students basic data", "View student enrollments details"};
+            // Options for the user to choose which file to view
+            String[] options = {"View students", "View student enrollments"};
+            // Show a dialog to get user's choice
             int choice = JOptionPane.showOptionDialog(menuDialog,
                     "Which student data file would you like to view?",
                     "View Student Data",
-                    JOptionPane.YES_NO_OPTION,
-                    JOptionPane.QUESTION_MESSAGE, null,
+                    JOptionPane.YES_NO_OPTION, // This will create buttons for YES (first option) and NO (second option)
+                    JOptionPane.QUESTION_MESSAGE, null, // No icon
                     options, options[0]);
 
-            if (choice == JOptionPane.YES_OPTION) {
+            if (choice == JOptionPane.YES_OPTION) { // If user chose "View students.txt"
                 displayFileContentInDialog(STUDENTS_FILE, "Student Basic Information", menuDialog);
-            } else if (choice == JOptionPane.NO_OPTION) {
+            } else if (choice == JOptionPane.NO_OPTION) { // If user chose "View student_enrollment.txt"
                 displayFileContentInDialog(ENROLLMENT_FILE, "Student Enrollment Details", menuDialog);
             }
+            // If user closes the dialog without selecting (choice is JOptionPane.CLOSED_OPTION), do nothing.
         });
 
         JButton btnManageRequests = new JButton("Student Requests");
         styleMenuButton(btnManageRequests, new Color(0, 100, 200));
         btnManageRequests.addActionListener(e -> {
+            // Call method from StudentManagementGUI
             RStudentRequestForm.openRequestManagement(parent);
         });
 
