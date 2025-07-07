@@ -66,7 +66,9 @@ public class RPaymentManagementGUI {
         mainPanel.add(Box.createVerticalStrut(20));
         mainPanel.add(buttonPanel);
 
-        dialog.add(mainPanel);
+        JScrollPane scrollPane = new JScrollPane(mainPanel);
+        scrollPane.setBorder(BorderFactory.createEmptyBorder());
+        dialog.add(scrollPane);
         dialog.setVisible(true);
     }
 

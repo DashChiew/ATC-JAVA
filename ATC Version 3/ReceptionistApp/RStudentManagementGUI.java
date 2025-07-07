@@ -18,7 +18,7 @@ public class RStudentManagementGUI {
 
     public static void showRegisterStudentDialog(JFrame parent) {
         JDialog dialog = new JDialog(parent, "Register Student", true);
-        dialog.setSize(400, 300);
+        dialog.setSize(400, 350);
         dialog.setLocationRelativeTo(parent);
         dialog.getContentPane().setBackground(new Color(240, 242, 245));
 
@@ -76,7 +76,9 @@ public class RStudentManagementGUI {
         mainPanel.add(Box.createVerticalStrut(20));
         mainPanel.add(buttonPanel);
 
-        dialog.add(mainPanel);
+        JScrollPane scrollPane = new JScrollPane(mainPanel);
+        scrollPane.setBorder(BorderFactory.createEmptyBorder());
+        dialog.add(scrollPane);
         dialog.setVisible(true);
     }
 
@@ -102,7 +104,7 @@ public class RStudentManagementGUI {
         formPanel.setBorder(new EmptyBorder(20, 20, 20, 20));
 
         JComboBox<String> studentDropDown = createRoundedComboBox();
-        students.stream().map(s -> s.split(",")[0]).forEach(studentDropDown::addItem);
+        students.stream().map(s -> s.split(",")[1]).forEach(studentDropDown::addItem);
 
         JTextField txtName = createRoundedTextField();
         JTextField txtIC = createRoundedTextField();
@@ -176,7 +178,9 @@ public class RStudentManagementGUI {
         mainPanel.add(Box.createVerticalStrut(20));
         mainPanel.add(buttonPanel);
 
-        dialog.add(mainPanel);
+        JScrollPane scrollPane = new JScrollPane(mainPanel);
+        scrollPane.setBorder(BorderFactory.createEmptyBorder());
+        dialog.add(scrollPane);
         dialog.setVisible(true);
     }
 
@@ -202,7 +206,7 @@ public class RStudentManagementGUI {
         formPanel.setBorder(new EmptyBorder(20, 20, 20, 20));
 
         JComboBox<String> studentDropDown = createRoundedComboBox();
-        students.stream().map(s -> s.split(",")[0]).forEach(studentDropDown::addItem);
+        students.stream().map(s -> s.split(",")[1]).forEach(studentDropDown::addItem);
         formPanel.add(studentDropDown, BorderLayout.CENTER);
 
         JPanel buttonPanel = new JPanel(new FlowLayout(FlowLayout.CENTER, 15, 0));
