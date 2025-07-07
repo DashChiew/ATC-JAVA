@@ -345,22 +345,9 @@ public class MainLoginPageTest extends JFrame implements ActionListener {
         List<String> defaultUsersToAdd = new ArrayList<>();
 
         String defaultAdminUserLine = "Admin User,CYChang,admin123,123456-78-9012,admin@example.com,012-3456789,123 Admin Street,admin";
-        String defaultTutorUserLine = "John Doe,tutor123,tutor123,901010-01-1234,john.doe@example.com,011-2345678,456 Tutor Avenue,tutor";
-        String defaultReceptionistUserLine = "Roxanne,receptionist123,receptionist123,910101-01-5678,roxanne@example.com,019-8765432,789 Receptionist Lane,receptionist";
-        String defaultStudentUserLine = "Jane Doe,student123,student123,020202-02-0202,jane.doe@example.com,017-1234567,101 Student Road,student";
-
 
         if (!lines.contains(defaultAdminUserLine)) {
             defaultUsersToAdd.add(defaultAdminUserLine);
-        }
-        if (!lines.contains(defaultTutorUserLine)) {
-            defaultUsersToAdd.add(defaultTutorUserLine);
-        }
-        if (!lines.contains(defaultReceptionistUserLine)) {
-            defaultUsersToAdd.add(defaultReceptionistUserLine);
-        }
-        if (!lines.contains(defaultStudentUserLine)) {
-            defaultUsersToAdd.add(defaultStudentUserLine);
         }
 
         if (!defaultUsersToAdd.isEmpty()) {
@@ -374,17 +361,6 @@ public class MainLoginPageTest extends JFrame implements ActionListener {
         }
     }
 
-    private boolean containsDefaultAdmin(List<String> lines) {
-        for (String line : lines) {
-            if (line.startsWith("CYChang,admin123,admin") ||
-                    line.startsWith("Roxanne,receptionist123,receptionist") ||
-                    line.startsWith("JohnDoe,tutor123,tutor") ||
-                    line.startsWith("JaneDoe,student123,student")) {
-                return true;
-            }
-        }
-        return false;
-    }
 
     public static void main(String[] args) {
         SwingUtilities.invokeLater(MainLoginPageTest::new);
