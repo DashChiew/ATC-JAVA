@@ -796,8 +796,8 @@ public class SettingForStudent extends JFrame {
 
                 if (parts.length >= 9) {
                     try {
-                        String studentId = parts[0].trim();
-                        String name = parts[1].trim().replace("\"", "");
+                        String name = parts[0].trim();
+                        String studentId = parts[1].trim().replace("\"", "");
                         String icPassport = parts[2].trim().replace("\"", "");
                         String email = parts[3].trim().replace("\"", "");
                         String contactNumber = parts[4].trim().replace("\"", "");
@@ -964,8 +964,8 @@ public class SettingForStudent extends JFrame {
         try (BufferedWriter bw = new BufferedWriter(new FileWriter(filename))) {
             for (SStudent student : allStudents.values()) {
                 bw.write(String.format("%s,\"%s\",\"%s\",\"%s\",\"%s\",\"%s\",\"%s\",\"%s\",\"%s\"",
-                        student.getStudentId(),
                         student.getName(),
+                        student.getStudentId(),
                         student.getIcPassport(),
                         student.getEmail(),
                         student.getContactNumber(),
