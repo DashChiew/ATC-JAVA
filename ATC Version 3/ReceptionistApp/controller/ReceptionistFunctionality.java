@@ -19,7 +19,12 @@ public class ReceptionistFunctionality {
     private static final String ENROLLMENT_FILE = "student_enrollment.txt";
     private static final String PAYMENTS_FILE = "payments.txt";
 
-    private static int studentCounter = readLastStudentId() + 1;
+    private static int studentCounter = generateStudentCounter();
+
+    private static int generateStudentCounter() {
+        int maxId = readLastStudentId();
+        return maxId + 1;
+    }
 
     private static int readLastStudentId() {
         // Ensure files exist before attempting to read
@@ -28,28 +33,20 @@ public class ReceptionistFunctionality {
         FileHandler.createFileIfNotExists(PAYMENTS_FILE);
 
         List<String> lines = FileHandler.readAllLines(STUDENTS_FILE);
-        if (lines.isEmpty()) return 0;
-        String lastLine = lines.getLast();
-        // Handle potential empty last line or malformed lines gracefully
-        if (lastLine.isEmpty()) return 0;
-        String[] parts = lastLine.split(",");
-        if (parts.length == 0) return 0;
-        // The first part is the username, e.g., "S001"
-        // Ensure that it's the username that determines the ID, not necessarily just parts[0] if the User toString format changes
-        // Based on User toString: Name,Username,Password,IC/Passport,Email,ContactNumber,Address,Role
-        // So, username is parts[1] if reading full User line.
-        // However, STUDENTS_FILE format seems to be simpler ("username,password,role").
-        // Let's assume STUDENTS_FILE only stores username, password, role for student users.
-        // If STUDENTS_FILE now stores the full 8-part User string, then parts[1] would be username.
-        // Given `l.split(",")[0].trim()` in `getStudentUsername()`, it's likely parts[0] is still the username here.
-        String lastUsername = parts[0].trim();
-        if (lastUsername.length() < 2 || !lastUsername.startsWith("S")) return 0; // Basic format check
-        try {
-            return Integer.parseInt(lastUsername.substring(1)); // Convert "001" to 1
-        } catch (NumberFormatException e) {
-            System.err.println("Error parsing last student ID from '" + lastUsername + "': " + e.getMessage());
-            return 0; // Fallback to 0 if parsing fails
+        int maxId = 0;
+        for (String line : lines) {
+            String[] parts = line.split(",");
+            if (parts.length >= 2 && parts[1].trim().startsWith("S")) {
+                try {
+                    String username = parts[1].trim();
+                    int currentId = Integer.parseInt(username.substring(1));
+                    maxId = Math.max(maxId, currentId);
+                } catch (NumberFormatException e) {
+                    System.out.println("Skip invalid username: " + parts[1]);
+                }
+            }
         }
+        return maxId;
     }
 
     /**
@@ -64,30 +61,23 @@ public class ReceptionistFunctionality {
     public static void registerStudent(String name, String password) {
         String username = generateUsername();
 
-        // Define placeholder values for new User fields not directly provided
+        // placeholders
         String defaultIcPassport = "N/A";
         String defaultEmail = "student@example.com";
         String defaultContact = "000-0000000";
         String defaultAddress = "N/A";
 
-        // Create User object with all 8 arguments
-        User newStudent = new User(name, username, password, defaultIcPassport, defaultEmail, defaultContact, defaultAddress, "student");
+        String studentData = String.format(
+                "%s,%s,%s,%s,%s,%s,%s,%s",
+                name, username, password, "N/A", "student@example.com", "000-0000000",
+                "N/A", "Enroll Month"
+        );
+        FileHandler.appendLine(STUDENTS_FILE, studentData);
 
-        // Save student credentials to STUDENTS_FILE (assuming this file is for student-specific basic login info)
-        // Ensure this file also stores the 8-part user string now
-        FileHandler.appendLine(STUDENTS_FILE, newStudent.toString());
-
-        // IMPORTANT ADDITION: Save student credentials to users.txt for centralized login functionality
-        // This ensures the student account is available for login alongside admin, tutor, receptionist.
-        AdminFunctionality.saveUser(newStudent); // Using AdminFunctionality.saveUser for consistency
-
-        // Save username, name and other stuff to enrollment file
-        // The enrollmentData format matches the previous implementation, so no change here,
-        // it's for student-specific details beyond basic user credentials.
         String enrollmentData = String.format(
                 "%s,\"%s\",\"%s\",\"%s\",\"%s\",\"%s\",\"%s\",\"%s\",\"%s\"",
-                name, username, "IC/Passport", "Email", "Contact Number", "Address",
-                "Level", "Subjects", "Enroll Month" // These should be updated later via updateStudentEnrollment
+                name, username, "N/A", "student@example.com", "000-0000000", "N/A", "Level",
+                "Subjects", "Enroll Month"
         );
         FileHandler.appendLine(ENROLLMENT_FILE, enrollmentData);
 
@@ -116,7 +106,7 @@ public class ReceptionistFunctionality {
             // Use regex to split by comma, but not inside double quotes
             String[] parts = line.split(",(?=(?:[^\"]*\"[^\"]*\")*[^\"]*$)");
             if (parts.length > 0 && parts[0].trim().replaceAll("^\"|\"$", "").equals(username)) {
-                // Update only non-blank fields, preserving quotes where necessary
+                // Update and preserve quotes where necessary
                 if (!name.isEmpty()) parts[1] = "\"" + name + "\"";
                 if (!ic.isEmpty()) parts[2] = "\"" + ic + "\"";
                 if (!email.isEmpty()) parts[3] = "\"" + email + "\"";
@@ -135,37 +125,65 @@ public class ReceptionistFunctionality {
             throw new IOException("Student " + username + " not found in enrollment file.");
         }
         FileHandler.writeAllLines(ENROLLMENT_FILE, enrollments);
+
+        List<String> studentRecords = FileHandler.readAllLines(STUDENTS_FILE);
+        boolean foundStudent = false;
+
+        for (int i = 0; i < studentRecords.size(); i++) {
+            String[] parts = studentRecords.get(i).split(",");
+            if (parts.length >= 2 && parts[1].trim().equals(username)) {
+                // Format: Name,Username,Password,IC,Email,Contact,Address,Role
+                StringBuilder updated = new StringBuilder();
+                updated.append(!name.isEmpty() ? name : parts[0].trim()).append(",");
+                updated.append(username).append(",");
+                updated.append(parts[2].trim()).append(","); // Pass no change
+                updated.append(!ic.isEmpty() ? ic : (parts.length > 3 ? parts[3].trim() : "N/A")).append(",");
+                updated.append(!email.isEmpty() ? email : (parts.length > 4 ? parts[4].trim() : "student@example.com")).append(",");
+                updated.append(!contact.isEmpty() ? contact : (parts.length > 5 ? parts[5].trim() : "000-0000000")).append(",");
+                updated.append(!address.isEmpty() ? address : (parts.length > 6 ? parts[6].trim() : "N/A")).append(",");
+                updated.append("student");
+
+                studentRecords.set(i, updated.toString());
+                foundStudent = true;
+                break;
+            }
+        }
+
+        if (!foundStudent) {
+            throw new IOException("Student " + username + " not found in students.txt");
+        }
+        FileHandler.writeAllLines(STUDENTS_FILE, studentRecords);
     }
 
 
     public static boolean deleteStudent(String username) {
         List<String> studentAcc = FileHandler.readAllLines(STUDENTS_FILE);
-        boolean removedFromStudents = studentAcc.removeIf(line -> line.startsWith(username + ","));
+        boolean removedFromStudents = studentAcc.removeIf(line -> {
+            String[] parts = line.split(",");
+            return parts.length >= 2 && parts[1].trim().equals(username);
+        });
         FileHandler.writeAllLines(STUDENTS_FILE, studentAcc);
 
         List<String> studentEnrollment = FileHandler.readAllLines(ENROLLMENT_FILE);
         // Remove based on username at the beginning of the line, considering quotes
         boolean removedFromEnrollment = studentEnrollment.removeIf(line -> {
             String[] parts = line.split(",(?=(?:[^\"]*\"[^\"]*\")*[^\"]*$)");
-            return parts.length > 0 && parts[0].trim().replaceAll("^\"|\"$", "").equals(username);
+            return parts.length > 1 && parts[1].trim().replaceAll("^\"|\"$", "").equals(username);
         });
         FileHandler.writeAllLines(ENROLLMENT_FILE, studentEnrollment);
 
-        // Also delete from the main users.txt file
-        List<User> allUsers = AdminFunctionality.readAllUsers();
-        boolean removedFromUsersFile = allUsers.removeIf(user -> user.getUsername().equals(username) && user.getRole().equals("student"));
-        if (removedFromUsersFile) {
-            AdminFunctionality.writeAllUsers(allUsers);
-        }
-
         // Optionally, delete payment records for the deleted student
         List<String> payments = FileHandler.readAllLines(PAYMENTS_FILE);
-        boolean removedFromPayments = payments.removeIf(line -> line.startsWith(username + ","));
+        boolean removedFromPayments = payments.removeIf(line -> {
+            String[] parts = line.split(",");
+            return parts.length > 0 && parts[0].trim().equals(username);
+        });
         if (removedFromPayments) {
             FileHandler.writeAllLines(PAYMENTS_FILE, payments);
         }
 
-        return removedFromStudents || removedFromEnrollment || removedFromPayments || removedFromUsersFile;
+
+        return removedFromStudents || removedFromEnrollment || removedFromPayments;
     }
 
     public static String[] getStudentUsername() {
