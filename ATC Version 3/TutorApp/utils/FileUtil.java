@@ -45,14 +45,13 @@ public class FileUtil {
      */
     public static List<String> readAllLines(String filePath) throws IOException {
         List<String> lines = new ArrayList<>();
-        File file = new File(filePath); // Create a File object
+        File file = new File(filePath);
 
-        // Check if the file exists before attempting to read
         if (!file.exists()) {
-            return lines; // Return empty list if file does not exist
+            return lines;
         }
 
-        try (BufferedReader br = new BufferedReader(new FileReader(file))) { // Use the File object
+        try (BufferedReader br = new BufferedReader(new FileReader(file))) {
             String line;
             while ((line = br.readLine()) != null) {
                 lines.add(line);
@@ -72,24 +71,23 @@ public class FileUtil {
     public static void writeAllLines(String filePath, List<String> lines) throws IOException {
         File file = new File(filePath);
 
-        // Ensure parent directories exist
         File parentDir = file.getParentFile();
         if (parentDir != null && !parentDir.exists()) {
-            if (!parentDir.mkdirs()) { // mkdirs() returns true if directories were created, false if they already exist or failed
+            if (!parentDir.mkdirs()) {
                 throw new IOException("Failed to create parent directories for file: " + filePath);
             }
         }
 
-        try (BufferedWriter bw = new BufferedWriter(new FileWriter(file))) { // Use the File object
+        try (BufferedWriter bw = new BufferedWriter(new FileWriter(file))) {
             for (String line : lines) {
                 bw.write(line);
-                bw.newLine(); // Use newLine() for platform-independent line separator
+                bw.newLine();
             }
         }
     }
 
     /**
-     * Parses a CSV line, handling quoted fields with commas.
+     * Parses a CSV line, handling quoted fields with commas and escaped double quotes.
      *
      * @param line The CSV line to parse.
      * @return An array of strings representing the parsed fields.
@@ -103,15 +101,33 @@ public class FileUtil {
             char c = line.charAt(i);
 
             if (c == '"') {
-                inQuote = !inQuote;
+                if (inQuote && i + 1 < line.length() && line.charAt(i + 1) == '"') {
+                    // This is an escaped double quote ("") inside a quoted field
+                    currentPart.append('"');
+                    i++; // Skip the next quote character
+                } else {
+                    inQuote = !inQuote; // Toggle quote state
+                }
             } else if (c == ',' && !inQuote) {
-                parts.add(currentPart.toString().trim());
+                // End of a field, not inside a quote
+                parts.add(currentPart.toString()); // No trim here, trim after unquoting if necessary
                 currentPart = new StringBuilder();
             } else {
                 currentPart.append(c);
             }
         }
-        parts.add(currentPart.toString().trim()); // Add the last part
-        return parts.toArray(new String[0]);
+        parts.add(currentPart.toString()); // Add the last part
+
+        // Post-process to remove surrounding quotes and handle internal escaped quotes
+        List<String> processedParts = new ArrayList<>();
+        for (String part : parts) {
+            if (part.startsWith("\"") && part.endsWith("\"") && part.length() >= 2) {
+                // Remove surrounding quotes and replace "" with "
+                processedParts.add(part.substring(1, part.length() - 1).replace("\"\"", "\""));
+            } else {
+                processedParts.add(part);
+            }
+        }
+        return processedParts.toArray(new String[0]);
     }
 }
