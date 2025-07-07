@@ -332,6 +332,24 @@ public class MainLoginPageTest extends JFrame implements ActionListener {
                 System.err.println("Skipping malformed user line (expected 8 parts, found " + parts.length + "): " + line);
             }
         }
+
+        List<String> studentLines = FileHandler.readAllLines("students.txt");
+        for (String line : studentLines) {
+            String[] parts = line.split(",");
+            if (parts.length >= 8) { // Ensure minimum fields
+                users.add(new User(
+                        parts[0].trim(), // Name
+                        parts[1].trim(), // Username (S001)
+                        parts[2].trim(), // Password
+                        parts[3].trim(), // IC
+                        parts[4].trim(), // Email
+                        parts[5].trim(), // Contact
+                        parts[6].trim(), // Address
+                        "student"        // Hardcoded role
+                ));
+            }
+        }
+
         return users;
     }
 
