@@ -3,17 +3,17 @@ package TutorApp;
 import common.ui.ButtonUIWithAnimation;
 import common.ui.SRoundImageLabel;
 import common.ui.RoundedBorder;
-//// REMOVED: import TutorApp.data.TutorProfileManager; // No longer needed
 
 import TutorApp.ui.frames.TAddClassFrame;
 import TutorApp.ui.frames.TDeleteClassFrame;
 import TutorApp.ui.frames.SettingForTutor;
 import TutorApp.ui.frames.TUpdateClassFrame;
+import TutorApp.ui.frames.TutorPostAnnouncementFrame; // NEW IMPORT
 import TutorApp.ui.panels.TViewClassesPanel;
-import TutorApp.ui.panels.TViewStudentsPanel; // Added for completeness, assumed usage
+import TutorApp.ui.panels.TViewStudentsPanel;
 import TutorApp.utils.FileUtil;
 import common.auth.MainLoginPageTest;
-import common.model.User; // NEW IMPORT: Required to handle User objects
+import common.model.User;
 
 import javax.imageio.ImageIO;
 import javax.swing.*;
@@ -22,41 +22,33 @@ import java.awt.*;
 import java.io.File;
 import java.io.IOException;
 import java.net.URL;
-import java.io.BufferedReader; // For reading users.txt
-import java.io.FileReader;     // For reading users.txt
-import java.util.HashMap;      // For readUserData
-import java.util.Map;          // For readUserData
-import java.awt.event.WindowAdapter; // NEW IMPORT: For handling window events
-import java.awt.event.WindowEvent;  // NEW IMPORT: For handling window events
+import java.io.BufferedReader;
+import java.io.FileReader;
+import java.util.HashMap;
+import java.util.Map;
+import java.awt.event.WindowAdapter;
+import java.awt.event.WindowEvent;
 
 public class TProfilePageGUI extends JFrame {
 
     private JPanel mainContentPanel;
-    private User currentUser; // Changed from String currentTutorUsername to User object
-    private MainLoginPageTest loginPage; // Reference to the login page
+    private User currentUser;
+    private MainLoginPageTest loginPage;
 
-    // Define the path to users.txt, consistent with SettingForAdminReceptionist
     private static final String USERS_FILE = "users.txt";
 
-    // Constructor to accept username and the login page instance (primary entry from login)
     public TProfilePageGUI(MainLoginPageTest loginPage, String tutorUsername) {
-        // This constructor now *always* loads the User object from the file
         this.currentUser = getUserFromUsername(tutorUsername);
         if (this.currentUser == null) {
             JOptionPane.showMessageDialog(null, "Error: User profile not found for username: " + tutorUsername + "\nPlease contact support.", "Profile Load Error", JOptionPane.ERROR_MESSAGE);
-            // In a real application, you might want to exit or return to the login screen
-            System.exit(1); // Exit if user profile isn't found, as the app can't proceed
+            System.exit(1);
         }
         this.loginPage = loginPage;
         initializeUI();
     }
 
-    // Default constructor (now removed as it leads to hardcoding/testing issues)
-    // Removed: public TProfilePageGUI(MainLoginPageTest mainLoginPageTest) { ... }
-
     private void initializeUI() {
         setTitle("User Profile & Tutor Dashboard");
-        // CHANGED: Use DISPOSE_ON_CLOSE instead of EXIT_ON_CLOSE
         setDefaultCloseOperation(JFrame.DISPOSE_ON_CLOSE);
         setPreferredSize(new Dimension(850, 680));
 
@@ -68,34 +60,28 @@ public class TProfilePageGUI extends JFrame {
         mainContentPanel.setBorder(new EmptyBorder(40, 40, 40, 40));
         mainContentPanel.setBackground(new Color(240, 242, 245));
 
-        showProfileSection(); // Display the initial profile section
+        showProfileSection();
 
         rootPanel.add(mainContentPanel, BorderLayout.CENTER);
         add(rootPanel);
 
         pack();
         setLocationRelativeTo(null);
-        // Do not set setVisible(true) here, it's called by the loginPageTest after successful login
 
-        // NEW: Add a WindowListener to handle closing the frame
         addWindowListener(new WindowAdapter() {
             @Override
             public void windowClosed(WindowEvent e) {
-                // When this frame is closed, show the login page
                 if (loginPage != null) {
                     loginPage.setVisible(true);
-                    loginPage.clearFields(); // Clear fields for the next login attempt
+                    loginPage.clearFields();
                 }
             }
         });
     }
 
-
-
     private void showProfileSection() {
-        mainContentPanel.removeAll(); // Clear previous content
+        mainContentPanel.removeAll();
 
-        // Panel to hold the profile information and the quit/logout button
         JPanel topSectionPanel = new JPanel(new BorderLayout());
         topSectionPanel.setBackground(new Color(240, 242, 245));
 
@@ -132,12 +118,10 @@ public class TProfilePageGUI extends JFrame {
         int imageSize = 128;
 
         try {
-            // Attempt to load from resources first (recommended for deployment)
             URL imageUrl = getClass().getResource("/xiaochou.png");
             File imageFile = null;
 
             if (imageUrl == null) {
-                // Fallback to direct file path if not found as resource (for development)
                 String userDir = System.getProperty("user.dir");
                 imageFile = new File(userDir, "xiaochou.png");
                 if (!imageFile.exists()) {
@@ -159,7 +143,7 @@ public class TProfilePageGUI extends JFrame {
 
             SRoundImageLabel finalProfilePicLabel = profilePicLabel;
             Timer fadeInTimer = new Timer(15, e -> {
-                float alpha = finalProfilePicLabel.getAlpha(); // Use the getter method
+                float alpha = finalProfilePicLabel.getAlpha();
                 if (alpha < 1.0f) {
                     alpha += 0.05f;
                     if (alpha > 1.0f) alpha = 1.0f;
@@ -182,7 +166,6 @@ public class TProfilePageGUI extends JFrame {
             profilePicLabel.setBorder(BorderFactory.createLineBorder(Color.LIGHT_GRAY, 1));
         }
 
-        // Get tutor profile data to display from the currentUser object (NO TutorProfileManager)
         String displayName = currentUser.getName();
         String displayEmail = currentUser.getEmail() + "@gmail.com";
 
@@ -208,10 +191,6 @@ public class TProfilePageGUI extends JFrame {
 
         topSectionPanel.add(profilePanel, BorderLayout.CENTER);
 
-        // --- Logout Button Section (TOP-RIGHT) ---
-        // Removed logout button code
-
-
         // -------------------- Buttons Section --------------------
         JPanel buttonsPanel = new JPanel();
         buttonsPanel.setLayout(new BoxLayout(buttonsPanel, BoxLayout.Y_AXIS));
@@ -219,7 +198,7 @@ public class TProfilePageGUI extends JFrame {
         buttonsPanel.setBackground(new Color(240, 242, 245));
         buttonsPanel.setAlignmentX(Component.CENTER_ALIGNMENT);
 
-        JPanel topRowButtonsPanel = new JPanel(new GridLayout(1, 2, 20, 20));
+        JPanel topRowButtonsPanel = new JPanel(new GridLayout(1, 2, 20, 20)); // Changed to 1 row, 2 columns
         topRowButtonsPanel.setBackground(new Color(240, 242, 245));
         topRowButtonsPanel.setAlignmentX(Component.CENTER_ALIGNMENT);
         topRowButtonsPanel.setMaximumSize(new Dimension(Integer.MAX_VALUE, 100));
@@ -235,9 +214,18 @@ public class TProfilePageGUI extends JFrame {
         buttonsPanel.add(topRowButtonsPanel);
         buttonsPanel.add(Box.createVerticalStrut(20));
 
+        // NEW: Panel for "Post Announcement" and "My Profile" buttons
+        JPanel bottomRowButtonsPanel = new JPanel(new GridLayout(1, 2, 20, 20)); // 1 row, 2 columns for side-by-side
+        bottomRowButtonsPanel.setBackground(new Color(240, 242, 245));
+        bottomRowButtonsPanel.setAlignmentX(Component.CENTER_ALIGNMENT);
+        bottomRowButtonsPanel.setMaximumSize(new Dimension(Integer.MAX_VALUE, 100));
+
+        JButton postAnnouncementButton = createStyledButton("Post Announcement", new Color(72, 160, 220)); // A new color for this button
+        postAnnouncementButton.addActionListener(e -> new TutorPostAnnouncementFrame(currentUser.getUsername()).setVisible(true));
+        bottomRowButtonsPanel.add(postAnnouncementButton);
+
         JButton myProfileButton = createStyledButton("My Profile", new Color(72, 160, 220));
         myProfileButton.addActionListener(e -> {
-            // Re-load the user to ensure the latest data is used for editing
             User latestUser = getUserFromUsername(currentUser.getUsername());
             if (latestUser != null) {
                 new SettingForTutor(latestUser).setVisible(true);
@@ -245,10 +233,9 @@ public class TProfilePageGUI extends JFrame {
                 JOptionPane.showMessageDialog(this, "Could not load latest profile data.", "Error", JOptionPane.ERROR_MESSAGE);
             }
         });
-        myProfileButton.setAlignmentX(Component.CENTER_ALIGNMENT);
-        myProfileButton.setMaximumSize(new Dimension(Integer.MAX_VALUE, myProfileButton.getPreferredSize().height));
+        bottomRowButtonsPanel.add(myProfileButton);
 
-        buttonsPanel.add(myProfileButton);
+        buttonsPanel.add(bottomRowButtonsPanel); // Add the new panel to the main buttonsPanel
 
         mainContentPanel.add(topSectionPanel);
         mainContentPanel.add(Box.createVerticalStrut(30));
@@ -274,7 +261,7 @@ public class TProfilePageGUI extends JFrame {
         buttonGridPanel.setBorder(BorderFactory.createEmptyBorder(20, 0, 0, 0));
         buttonGridPanel.setBackground(new Color(240, 242, 245));
 
-        String tutorUsernameForClasses = currentUser.getUsername(); // Get username from the User object
+        String tutorUsernameForClasses = currentUser.getUsername();
 
         JButton addClassButton = createStyledButton("Add New Class", new Color(51, 153, 255));
         addClassButton.addActionListener(e -> new TAddClassFrame(tutorUsernameForClasses).setVisible(true));
@@ -313,7 +300,6 @@ public class TProfilePageGUI extends JFrame {
         mainContentPanel.revalidate();
         mainContentPanel.repaint();
     }
-
 
     private void showViewClassesPanel() {
         mainContentPanel.removeAll();
@@ -362,8 +348,6 @@ public class TProfilePageGUI extends JFrame {
         titleLabel.setForeground(new Color(55, 65, 81));
         viewStudentsContainerPanel.add(titleLabel, BorderLayout.NORTH);
 
-        // Assuming TViewStudentsPanel will be implemented similarly to TViewClassesPanel
-        // It likely needs the tutor's username to filter which students to show.
         TViewStudentsPanel viewStudentsPanel = new TViewStudentsPanel(currentUser.getUsername());
         viewStudentsContainerPanel.add(viewStudentsPanel);
 
@@ -393,8 +377,7 @@ public class TProfilePageGUI extends JFrame {
         button.setBackground(bgColor);
         button.setForeground(Color.WHITE);
         button.setFocusPainted(false);
-        // CHANGE THIS LINE: Increase the horizontal padding (the second and fourth values)
-        button.setBorder(BorderFactory.createEmptyBorder(15, 40, 15, 40)); // Increased from 25 to 40
+        button.setBorder(BorderFactory.createEmptyBorder(15, 40, 15, 40));
         button.setCursor(new Cursor(Cursor.HAND_CURSOR));
         button.setUI(new ButtonUIWithAnimation());
         return button;
@@ -406,9 +389,9 @@ public class TProfilePageGUI extends JFrame {
             String line;
             while ((line = br.readLine()) != null) {
                 String[] parts = FileUtil.parseCsvLine(line);
-                if (parts.length == 8) { // Expect 8 parts for the User object
+                if (parts.length == 8) {
                     String name = parts[0].trim();
-                    String userUsername = parts[1].trim(); // Changed variable name to avoid confusion
+                    String userUsername = parts[1].trim();
                     String password = parts[2].trim();
                     String icPassport = parts[3].trim();
                     String email = parts[4].trim();
@@ -417,7 +400,7 @@ public class TProfilePageGUI extends JFrame {
                     String role = parts[7].trim();
 
                     User user = new User(name, userUsername, password, icPassport, email, contactNumber, address, role);
-                    allUsers.put(userUsername, user); // Use username as the key
+                    allUsers.put(userUsername, user);
                 } else {
                     System.err.println("Skipping malformed line in " + USERS_FILE + " (expected 8 parts): " + line);
                 }
@@ -426,8 +409,8 @@ public class TProfilePageGUI extends JFrame {
             System.err.println("Error reading " + USERS_FILE + ": " + e.getMessage());
             e.printStackTrace();
             JOptionPane.showMessageDialog(this, "Error loading user data: " + e.getMessage(), "File Read Error", JOptionPane.ERROR_MESSAGE);
-            return null; // Return null if there's an error reading the file
+            return null;
         }
-        return allUsers.get(username); // Return the User object found, or null if not in map
+        return allUsers.get(username);
     }
 }
