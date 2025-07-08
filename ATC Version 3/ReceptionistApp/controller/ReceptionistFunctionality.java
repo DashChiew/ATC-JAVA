@@ -105,7 +105,7 @@ public class ReceptionistFunctionality {
             String line = enrollments.get(i);
             // Use regex to split by comma, but not inside double quotes
             String[] parts = line.split(",(?=(?:[^\"]*\"[^\"]*\")*[^\"]*$)");
-            if (parts.length > 0 && parts[0].trim().replaceAll("^\"|\"$", "").equals(username)) {
+            if (parts.length > 1 && parts[1].trim().replaceAll("^\"|\"$", "").equals(username)) {
                 // Update and preserve quotes where necessary
                 if (!name.isEmpty()) parts[1] = "\"" + name + "\"";
                 if (!ic.isEmpty()) parts[2] = "\"" + ic + "\"";
@@ -131,7 +131,7 @@ public class ReceptionistFunctionality {
 
         for (int i = 0; i < studentRecords.size(); i++) {
             String[] parts = studentRecords.get(i).split(",");
-            if (parts.length >= 2 && parts[1].trim().equals(username)) {
+            if (parts.length >= 2 && parts[1].trim().replaceAll("^\"|\"$", "").equals(username)) {
                 // Format: Name,Username,Password,IC,Email,Contact,Address,Role
                 StringBuilder updated = new StringBuilder();
                 updated.append(!name.isEmpty() ? name : parts[0].trim()).append(",");
