@@ -17,11 +17,7 @@ import java.util.stream.Collectors;
 public class ReceptionistFunctionality {
     private static final String STUDENTS_FILE = "students.txt";
     private static final String ENROLLMENT_FILE = "student_enrollment.txt";
-    // CHANGED TO "payment.txt" to align with the functionality desired from previous steps
-    // Standardize to use PAYMENT_FILE for all payment operations
-    private static final String PAYMENT_FILE = "payment.txt";
-    // Added USERS_FILE for login functionality, consistent with User object needs
-    private static final String USERS_FILE = "users.txt";
+    private static final String PAYMENTS_FILE = "payments.txt";
 
     private static int studentCounter = generateStudentCounter();
 
@@ -34,10 +30,7 @@ public class ReceptionistFunctionality {
         // Ensure files exist before attempting to read
         FileHandler.createFileIfNotExists(STUDENTS_FILE);
         FileHandler.createFileIfNotExists(ENROLLMENT_FILE);
-        // Use PAYMENT_FILE consistently
-        FileHandler.createFileIfNotExists(PAYMENT_FILE);
-        // Ensure users.txt exists for findUserByUsername
-        FileHandler.createFileIfNotExists(USERS_FILE);
+        FileHandler.createFileIfNotExists(PAYMENTS_FILE);
 
         List<String> lines = FileHandler.readAllLines(STUDENTS_FILE);
         int maxId = 0;
@@ -56,17 +49,11 @@ public class ReceptionistFunctionality {
         return maxId;
     }
 
-    public static String getNextStudentId() {
-        return "S" + String.format("%03d", studentCounter++);
-    }
-
     /**
-     * Registers a new student. This method uses placeholder values for
-     * information not directly provided (IC, Email, Contact, Address, etc.).
-     * It saves the student's credentials to students.txt and student_enrollment.txt.
-     * Note: This method's signature and behavior remain as per your "old code"
-     * and does NOT automatically add to users.txt for general login or create
-     * detailed payment records with all fields.
+     * Registers a new student. This method now creates a User object with all 8 required fields,
+     * using placeholder values for information not directly provided (IC, Email, Contact, Address).
+     * It saves the student's credentials to both students.txt and users.txt for authentication.
+     * Enrollment data is saved to student_enrollment.txt.
      *
      * @param name The full name of the student.
      * @param password The password for the student's account.
@@ -82,14 +69,14 @@ public class ReceptionistFunctionality {
 
         String studentData = String.format(
                 "%s,%s,%s,%s,%s,%s,%s,%s",
-                name, username, password, defaultIcPassport, defaultEmail, defaultContact,
-                defaultAddress, "student" // Role is 'student'
+                name, username, password, "N/A", "student@example.com", "000-0000000",
+                "N/A", "Enroll Month"
         );
         FileHandler.appendLine(STUDENTS_FILE, studentData);
 
         String enrollmentData = String.format(
                 "%s,\"%s\",\"%s\",\"%s\",\"%s\",\"%s\",\"%s\",\"%s\",\"%s\"",
-                name, username, defaultIcPassport, defaultEmail, defaultContact, defaultAddress, "Level",
+                name, username, "N/A", "student@example.com", "000-0000000", "N/A", "Level",
                 "Subjects", "Enroll Month"
         );
         FileHandler.appendLine(ENROLLMENT_FILE, enrollmentData);
@@ -120,8 +107,7 @@ public class ReceptionistFunctionality {
             String[] parts = line.split(",(?=(?:[^\"]*\"[^\"]*\")*[^\"]*$)");
             if (parts.length > 1 && parts[1].trim().replaceAll("^\"|\"$", "").equals(username)) {
                 // Update and preserve quotes where necessary
-                // Note: parts[0] is name, parts[1] is username (SXXX)
-                if (!name.isEmpty()) parts[0] = name; // Update name at index 0, not parts[1]
+                if (!name.isEmpty()) parts[0] = name;
                 if (!ic.isEmpty()) parts[2] = "\"" + ic + "\"";
                 if (!email.isEmpty()) parts[3] = "\"" + email + "\"";
                 if (!contact.isEmpty()) parts[4] = "\"" + contact + "\"";
@@ -140,23 +126,22 @@ public class ReceptionistFunctionality {
         }
         FileHandler.writeAllLines(ENROLLMENT_FILE, enrollments);
 
-        // Also update students.txt for consistency with updated enrollment data
         List<String> studentRecords = FileHandler.readAllLines(STUDENTS_FILE);
         boolean foundStudent = false;
 
         for (int i = 0; i < studentRecords.size(); i++) {
             String[] parts = studentRecords.get(i).split(",");
-            // Format: Name,Username,Password,IC,Email,Contact,Address,Role
-            if (parts.length >= 2 && parts[1].trim().equals(username)) { // Match by username (index 1)
+            if (parts.length >= 2 && parts[1].trim().replaceAll("^\"|\"$", "").equals(username)) {
+                // Format: Name,Username,Password,IC,Email,Contact,Address,Role
                 StringBuilder updated = new StringBuilder();
-                updated.append(!name.isEmpty() ? name : parts[0].trim()).append(","); // Name
-                updated.append(username).append(","); // Username
-                updated.append(parts[2].trim()).append(","); // Password (no change from this method)
-                updated.append(!ic.isEmpty() ? ic : (parts.length > 3 ? parts[3].trim() : "N/A")).append(","); // IC
-                updated.append(!email.isEmpty() ? email : (parts.length > 4 ? parts[4].trim() : "student@example.com")).append(","); // Email
-                updated.append(!contact.isEmpty() ? contact : (parts.length > 5 ? parts[5].trim() : "000-0000000")).append(","); // Contact
-                updated.append(!address.isEmpty() ? address : (parts.length > 6 ? parts[6].trim() : "N/A")).append(","); // Address
-                updated.append("student"); // Role (unchanged)
+                updated.append(!name.isEmpty() ? name : parts[0].trim()).append(",");
+                updated.append(username).append(",");
+                updated.append(parts[2].trim()).append(","); // Pass no change
+                updated.append(!ic.isEmpty() ? ic : (parts.length > 3 ? parts[3].trim() : "N/A")).append(",");
+                updated.append(!email.isEmpty() ? email : (parts.length > 4 ? parts[4].trim() : "student@example.com")).append(",");
+                updated.append(!contact.isEmpty() ? contact : (parts.length > 5 ? parts[5].trim() : "000-0000000")).append(",");
+                updated.append(!address.isEmpty() ? address : (parts.length > 6 ? parts[6].trim() : "N/A")).append(",");
+                updated.append("student");
 
                 studentRecords.set(i, updated.toString());
                 foundStudent = true;
@@ -188,18 +173,15 @@ public class ReceptionistFunctionality {
         FileHandler.writeAllLines(ENROLLMENT_FILE, studentEnrollment);
 
         // Optionally, delete payment records for the deleted student
-        List<String> payments = FileHandler.readAllLines(PAYMENT_FILE); // Use PAYMENT_FILE
+        List<String> payments = FileHandler.readAllLines(PAYMENTS_FILE);
         boolean removedFromPayments = payments.removeIf(line -> {
             String[] parts = line.split(",");
             return parts.length > 0 && parts[0].trim().equals(username);
         });
         if (removedFromPayments) {
-            FileHandler.writeAllLines(PAYMENT_FILE, payments); // Use PAYMENT_FILE
+            FileHandler.writeAllLines(PAYMENTS_FILE, payments);
         }
 
-        // IMPORTANT: If 'users.txt' is used for all logins, you might also need to remove from there.
-        // As per the "old code" no explicit users.txt management in registerStudent/deleteStudent.
-        // Assuming findUserByUsername is the only place using users.txt directly for lookup.
 
         return removedFromStudents || removedFromEnrollment || removedFromPayments;
     }
@@ -207,7 +189,7 @@ public class ReceptionistFunctionality {
     public static String[] getStudentUsername() {
         List<String> lines = FileHandler.readAllLines(STUDENTS_FILE);
         return lines.stream()
-                // Assuming STUDENTS_FILE stores format: Name,Username,Password,...
+                // Assuming STUDENTS_FILE now stores the full 8-part User string: Name,Username,Password,...
                 // So, the username is at index 1 after splitting.
                 .map(l -> {
                     String[] parts = l.split(",");
@@ -217,89 +199,42 @@ public class ReceptionistFunctionality {
                 .toArray(String[]::new);
     }
 
-    /**
-     * Saves a new payment record to the PAYMENT_FILE ("payment.txt").
-     * Now saves in the detailed 5-part format.
-     */
     public static boolean saveNewPayment(String username, double amount, String status, String dueDate) {
-        // We need a payment method and payment date (the date the payment is recorded)
-        // For "Record New Payment" from RPaymentManagementGUI, we can use "Manual Entry"
-        // and the current date as the payment date.
-        String paymentMethod = "Manual Entry";
-        String paymentDate = LocalDate.now().toString(); // Use current date for payment date
-
-        // Detailed payment.txt format: username,paymentMethod,paymentDate,amount,status
-        String paymentData = String.format("%s,%s,%s,%.2f,%s", username, paymentMethod, paymentDate, amount, status);
-        return FileHandler.appendLine(PAYMENT_FILE, paymentData);
+        String paymentData = String.format("%s,%.2f,%s,%s", username, amount, status, dueDate);
+        return FileHandler.appendLine(PAYMENTS_FILE, paymentData);
     }
 
-    // START OF METHODS PORTED/UPDATED FROM PREVIOUS "NEW CODE" OUTPUT
-
-    /**
-     * Finds a User by username by reading from the common "users.txt" file.
-     * Assumes "users.txt" contains user data in the format:
-     * Name,Username,Password,IC/Passport,Email,ContactNumber,Address,Role
-     *
-     * @param username The username to search for.
-     * @return A User object if found, otherwise null.
-     */
-    public static User findUserByUsername(String username) {
-        List<String> lines = FileHandler.readAllLines(USERS_FILE); // Reads from users.txt
+    public static List<String[]> getAllPaymentRecords() {
+        List<String> lines = FileHandler.readAllLines(PAYMENTS_FILE);
+        List<String[]> records = new ArrayList<>();
         for (String line : lines) {
             String[] parts = line.split(",");
-            // Expected format for users.txt: Name,Username,Password,IC/Passport,Email,ContactNumber,Address,Role
-            // So, username is at parts[1], and we need 8 parts for the User constructor
-            if (parts.length >= 8 && parts[1].trim().equals(username)) { // Check length for 8 parts and match username at index 1
-                return new User(parts[0].trim(), parts[1].trim(), parts[2].trim(), parts[3].trim(),
-                        parts[4].trim(), parts[5].trim(), parts[6].trim(), parts[7].trim());
+            if (parts.length >= 4) {
+                records.add(new String[]{parts[0].trim(), parts[1].trim(), parts[2].trim(), parts[3].trim()});
+            } else {
+                System.err.println("Malformed payment record skipped: " + line);
             }
         }
-        return null;
+        return records;
     }
 
-    /**
-     * Retrieves a list of lines representing unpaid or pending payments from "payment.txt".
-     * Expects "payment.txt" to have a detailed format:
-     * username,paymentMethod,paymentDate,amount,status
-     *
-     * @return A list of strings, each representing an unpaid/pending payment record.
-     */
     public static List<String> getUnpaidPaymentLines() {
-        List<String> unpaidLines = new ArrayList<>();
-        List<String> lines = FileHandler.readAllLines(PAYMENT_FILE); // Reads from "payment.txt"
-        for (String line : lines) {
-            String[] parts = line.split(",");
-            // Detailed payment.txt format: username,paymentMethod,paymentDate,amount,status
-            if (parts.length >= 5) {
-                String status = parts[4].trim(); // Status is at index 4
-                if ("UNPAID".equalsIgnoreCase(status) || "PENDING".equalsIgnoreCase(status)) {
-                    unpaidLines.add(line); // Add the full detailed line
-                }
-            }
-        }
-        return unpaidLines;
+        List<String> allUnpaidPayments = FileHandler.readAllLines(PAYMENTS_FILE);
+        return allUnpaidPayments.stream()
+                .filter(line -> {
+                    String[] parts = line.split(",");
+                    return parts.length >= 3 && parts[2].trim().equalsIgnoreCase("UNPAID");
+                }).collect(Collectors.toList());
     }
 
-    /**
-     * Updates the status of a specific payment record in "payment.txt".
-     * Expects "payment.txt" to have a detailed format.
-     *
-     * @param originalLineFullDetailed The full original line of the payment record to update.
-     * @param newStatus The new status to set (e.g., "PAID").
-     * @return true if the payment status was updated, false otherwise.
-     * @throws IOException If an I/O error occurs during file operations.
-     */
-    public static boolean updatePaymentStatus(String originalLineFullDetailed, String newStatus) throws IOException {
-        List<String> lines = FileHandler.readAllLines(PAYMENT_FILE); // Reads from "payment.txt"
+    public static boolean updatePaymentStatus(String originalPaymentLine, String newStatus) throws IOException {
+        List<String> lines = FileHandler.readAllLines(PAYMENTS_FILE);
         boolean updated = false;
-
-        // originalLineFullDetailed is expected to be a full line from payment.txt (detailed)
-        // e.g., "S001,Online Banking,04 July 2025,785.00,Pending"
         for (int i = 0; i < lines.size(); i++) {
-            if (lines.get(i).equals(originalLineFullDetailed)) {
+            if (lines.get(i).equals(originalPaymentLine)) {
                 String[] parts = lines.get(i).split(",");
-                if (parts.length >= 5) { // Ensure there's a status field at index 4
-                    parts[4] = newStatus; // Update the status field (index 4 for detailed payment.txt)
+                if (parts.length >= 3) {
+                    parts[2] = newStatus; // Update the status part
                     lines.set(i, String.join(",", parts));
                     updated = true;
                     break;
@@ -307,59 +242,30 @@ public class ReceptionistFunctionality {
             }
         }
         if (updated) {
-            FileHandler.writeAllLines(PAYMENT_FILE, lines);
+            FileHandler.writeAllLines(PAYMENTS_FILE, lines);
         }
         return updated;
     }
 
-    /**
-     * Retrieves all payment records from "payment.txt".
-     * Expects "payment.txt" to have a detailed format.
-     *
-     * @return A list of String arrays, where each array represents a payment record.
-     */
-    public static List<String[]> getAllPaymentRecords() {
-        List<String[]> records = new ArrayList<>();
-        List<String> lines = FileHandler.readAllLines(PAYMENT_FILE); // Reads from "payment.txt"
-        for (String line : lines) {
-            // Detailed payment.txt format: username,paymentMethod,paymentDate,amount,status
-            String[] parts = line.split(",");
-            if (parts.length >= 5) { // Ensure it's a valid detailed payment line
-                records.add(parts);
-            }
-        }
-        return records;
-    }
-
-    /**
-     * Generates a payment receipt string based on detailed payment information.
-     * Expects paymentDetails array to be from a detailed payment record:
-     * username,paymentMethod,paymentDate,amount,status
-     *
-     * @param paymentDetails An array containing detailed payment information.
-     * @return A formatted string representing the payment receipt.
-     */
     public static String generateReceipt(String[] paymentDetails) {
-        // paymentDetails now comes from getAllPaymentRecords, which reads from payment.txt (detailed)
-        // So, paymentDetails format is: username,paymentMethod,paymentDate,amount,status
         String username = paymentDetails[0];
-        String paymentMethod = paymentDetails[1];
-        String paymentDate = paymentDetails[2];
-        double amount = Double.parseDouble(paymentDetails[3]);
-        String status = paymentDetails[4];
+        double amount = Double.parseDouble(paymentDetails[1]);
+        String status = paymentDetails[2];
+        String dueDate = paymentDetails[3];
 
         String receiptContent = String.format(
                 "===== PAYMENT RECEIPT =====\n" +
                         "Date: %s\n" +
                         "Student: %s\n" +
-                        "Payment Method: %s\n" +
-                        "Payment Date: %s\n" +
                         "Amount Paid: RM %.2f\n" +
                         "Status: %s\n" +
+                        "Original Due Date: %s\n" +
                         "===========================\n",
-                LocalDate.now().toString(), username, paymentMethod, paymentDate, amount, status);
+                LocalDate.now().toString(), username, amount, status, dueDate);
 
+        // Optional: Save receipt to a file
         try {
+            // Ensure 'receipts' directory exists
             java.nio.file.Files.createDirectories(java.nio.file.Paths.get("receipts"));
             String receiptFileName = "receipts/" + username + "_" + System.currentTimeMillis() + ".txt";
             FileHandler.appendLine(receiptFileName, receiptContent);
@@ -369,5 +275,4 @@ public class ReceptionistFunctionality {
         }
         return receiptContent;
     }
-    // END OF METHODS PORTED/UPDATED FROM PREVIOUS "NEW CODE" OUTPUT
 }
